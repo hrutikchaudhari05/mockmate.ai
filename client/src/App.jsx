@@ -9,6 +9,7 @@ import { useSelector } from 'react-redux';
 // import components
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
+import InterviewRoom from './pages/InterviewRoom';
 
 
 // create AuthenticateRoute 
@@ -18,7 +19,7 @@ const AuthenticatedRoute = ({children}) =>  {
   // const {isAuthenticated} = useSelector(state => state.auth);
   const isAuthenticated = true;
 
-  console.log('🔐 Checking auth...', isAuthenticated);
+  console.log('App.jsx -> User Logged In...', isAuthenticated);
 
   // if not authenticated
   if (!isAuthenticated) {
@@ -32,6 +33,7 @@ const AuthenticatedRoute = ({children}) =>  {
 
 
 function App() {
+  const isAuthenticated = true; // Ya Redux se lo
   
   return (
     <BrowserRouter> {/* Router add kiya, navigation enable karne ke liye */}
@@ -41,16 +43,16 @@ function App() {
         <Route path='/login' element={<Login />} />
         <Route path='/register' element={<Register />} />
 
-        {/* Protected Route - Sirf logged-in users */}
+        {/* Protected Route - Dashboard */}
         <Route path="/dashboard" element={
           <AuthenticatedRoute>
-            {/* children */} 
-            {/* <div className="text-white p-8">
-              <h1 className="text-3xl font-bold">Dashboard Page</h1>
-              <p>Yahan aapka actual dashboard content ayega</p>
-            </div> */}
             <Dashboard />
           </AuthenticatedRoute>
+        } />
+
+        {/* Protected Route - InterviewRoom */}
+        <Route path="/interview-room" element={
+          isAuthenticated ? <InterviewRoom /> : <Navigate to="/login" />
         } />
 
         {/* Root path ko dashboard pe redirect karo */}

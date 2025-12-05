@@ -147,3 +147,60 @@ Header - welcome message
 Stats Cards - 4 boxes with numbers 
 Action Button - Kuchh text aur Start Interview button
 Recent Table - Last 3 interviews
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## SOME MAIN BUGS TO SOLVE 
+
+# 1 - Stream reset to null issue  
+- PROBLEM: User ActualInterviewScreen pe refresh kare to -> Stream null ho jati hai, Recording nahi chalti, error aata hai
+
+- CURRENT FLOW:
+PreInterview → Stream create → ActualInterview
+Refresh click → Component re-mount → Stream lost → Error
+
+- ROOT CAUSE: Stream object parent component se prop ke through aa raha tha. Refresh pe parent bhi re-mount hota hai isiliye Stream reconstruct nahi hota. Stream localStorage/Redux mein store nahi ho sakti (non-serializable)
+
+- SOLUTION: 
+> Permission Status Tracking:
+> Mic permission granted hone pe flag store kiya(sessionStorage)
+> Refresh pe flag check kiya
+> Agar permission already granted hai, toh stream dubara create kiya
+
+- IMPLEMENTATION:
+// 1. Permission grant hone pe flag set
+sessionStorage.setItem('mic_permission', 'granted');
+
+// 2. Refresh pe check
+if (sessionStorage.getItem('mic_permission') === 'granted') {
+    // Stream dubara create karo
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(newStream => setStream(newStream));
+}
+
+- KEY POINT:
+Stream store nahi kar sakte, permission status track kar sakte hain
+sessionStorage use kiya because fir (tab close hone pe clear ho jayega stream)
+

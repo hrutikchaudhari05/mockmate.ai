@@ -1,26 +1,39 @@
 import React, { useState } from 'react';
-import {motion} from 'framer-motion'
+import {motion} from 'framer-motion';
 
+// redux imports 
+import { useDispatch } from 'react-redux';
+import { createInterview } from '@/store/interviewSlice';   // it is an action in interviewSlice
 
 // shadcn imports 
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 const Setup = ({onClose}) => {
+
+    // first of all dispatch 
+    const dispatch = useDispatch();
+
+    // use navigate as well
+    const navigate = useNavigate();
 
     // state for managing formData 
     const [formData, setFormData] = useState({
         title: "",
         type: "",
         difficulty: "",
-        duration: "",
+        duration: "", // default 30 mins
         jd: "",
         companies: "",
         context: "",
         resume: null
     });
+
+    // data validation ke liye formValidation check karo 
+    const formIsValid = true;
 
     // Background scroll disable karne ke liye
     React.useEffect(() => {
@@ -32,12 +45,59 @@ const Setup = ({onClose}) => {
 
     // handleChange function for taking valus in Input and Textarea 
     const handleChange = (field, value) => {
-        setFormData(prev => ({...prev, [field]: value}));
+
+        setFormData(prev => ({
+            ...prev,
+            [field]: field === 'duration' 
+                ? value === "" ? "" : parseInt(value) * 60
+                : value // for other values
+        }));
     };
 
-    // handleSubmit
-    const handleSubmit = (e) => {
-        e.preventDefault();
+    // handleStartInterview
+    const handleStartInterview = async () => {
+
+        // check current state 
+        // console.log("Current formData: " ,formData);
+
+        // console.log("Title: ", formData.title);
+        
+
+        // ek complete interview Object banana padega because at this moment hum ne sirf interview ke liye setup kiya hai, but hame current interview session ke baare me hr cheeze ek object me store karni padegi like AI questions, User responses, currentQueIndex, and saath me hame status bhi maintain karna padega like (setup, ongoing, finished)
+        const interviewData = {
+            setup: formData,
+            questions: [],
+            responses: [],
+            currentQuestionIndex: 0,
+            status: 'setup'
+        }
+
+        // Only if Start button clicked (form valid)
+        if (formIsValid) {
+
+            // first save data in localStorage 
+            localStorage.setItem('mockmate_interview', JSON.stringify(interviewData));
+            localStorage.setItem('interview_active', 'false');  // ye imp hai future me - user ko back aane se rokne ke liye and refresh click kiya to bhi kuchh naa karne ke liye
+            // localStorage me save karne ka reason: 
+            // 1. redux me data sirf temp save hota hai, aur agar page refresh yaa rerender hua to wo data lost ho jaata hai
+            // 2. isiliye hum wo data ko localStorage me store karte hai, jb user submit button pr click karta hai tb 
+        
+
+            // save the interviewData in redux 
+            //console.log("Interview Data before dispatch:", interviewData);
+
+            /**
+                1. dispatch(action) → Redux store update
+                2. Redux store change → Components automatically re-render
+                3. useSelector → Updated data mil jata hai
+             */
+            await dispatch(createInterview(interviewData));
+            //console.log("After dispatch:", interviewData)
+
+            navigate('/interview-room');
+        }
+
+        onClose();
 
         console.log(formData);
     }
@@ -76,7 +136,7 @@ const Setup = ({onClose}) => {
                         <div className='border border-slate-800 rounded-md mt-2 mb-3'></div>
 
                         {/* Yahan tera form aayega */}
-                        <form onSubmit={handleSubmit} className="space-y-3 text-white mb-2">
+                        <form className="space-y-3 text-white mb-2">
                             
                             {/* Title Input Area */}
                             <div className='border rounded-md border-slate-700 flex flex-row items-center cursor-pointer py-1'>
@@ -198,7 +258,7 @@ const Setup = ({onClose}) => {
                                 <p className='text-lg flex items-center justify-center text-slate-400 w-1/2'>Duration</p>
                                 
                                 <Select
-                                    value={formData.duration}
+                                    value={formData.duration ? (formData.duration / 60).toString() : ''}
                                     onValueChange={(value) => handleChange('duration', value)}
                                 >
                                     <SelectTrigger className="bg-transparent border-0 border-l rounded-none border-slate-500 text-center justify-center focus:ring-0 focus:ring-offset-0 focus:outline-none ring-0 ring-offset-0 ouline-none w-full data-[placeholder]:text-slate-500">
@@ -320,7 +380,7 @@ const Setup = ({onClose}) => {
                                         Cancel
                                     </Button>
                                     <Button 
-                                        type='submit'
+                                        onClick={handleStartInterview}
                                         className="bg-indigo-700 text-white px-6 py-2 rounded-lg hover:bg-indigo-600"
                                     >
                                         Start Interview

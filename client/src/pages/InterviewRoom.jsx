@@ -1,0 +1,65 @@
+import React, {useState, useEffect} from 'react';
+
+import PreInterviewScreen from '@/components/PreInterviewScreen'
+import ActualInterviewScreen from '@/components/ActualInterviewScreen';
+
+const InterviewRoom = () => {
+    // const [stage, setStage] = useState("pre");
+
+    // agar directly stage ko 'pre' set kiya to ek imp bug aa rha tha (jb actualInterview Page pr refresh click kiya to state firse 'pre' set ho rha thaa - usse prevent karne ke liye below code)
+    const [stage, setStage] = useState(() => {
+        // pehle check karna padega interview chal rha hai yaa nhi, wo check karenge -- agar localStorage me 'mockmate_interiview' item hai to state 'interview' rakho otherwise 'pre' rakho 
+        const saved = localStorage.getItem('interview_active');
+        return saved === 'true' ? 'interview' : 'pre';
+    });
+    const [stream, setStream] = useState(null); // preInterviewScreen me user media permissions dega wo store 
+    // Stream Notes:
+    // user ke diye huye permissions ko store karta hai, aur hum isse as a prop pass karte hai next component me, fir ye next page pr user se firse permissions nhi maagte
+    // actuall ye user ko hrr page pr permissions firse naa maage isliye use hota hai 
+
+    // ye tab hee run hoga jb stage 'interview' hai and 'stream null hai'
+    useEffect(() => {
+        if (stage === 'interview' && !stream) {
+            // agar sessionStorage me mic_permission ko granted kiya hai to hum firse ActualInterview page pr stream le sakte hai
+            if (sessionStorage.getItem('mic_permission') === 'granted') {
+                // firse nayi stream lo 
+                navigator.mediaDevices.getUserMedia({ audio: true })    // ye ek promise hota hai and wo hame niche consume karna padega 
+                    .then(newStream => setStream(newStream));
+                    
+            } else {    
+                // sessionStorage me mic_permission ko 'granted' nhi kiya tb 
+                setStage('pre');
+            }
+        } 
+    }, [stream, stage])
+
+    return (
+        <div className='full-screen'>
+
+            {stage === 'pre' && 
+                <PreInterviewScreen 
+                    onStart={(audioStream) => {
+                        // rendering ke beech me state updates allowed nhi hote usko rokne ke liye below code ko next rendering cycle me schedule karte hai 
+                        setTimeout(() => {
+                            setStream(audioStream);
+                            setStage('interview');
+                        }, 0);
+                    }} 
+                />
+            }
+
+            {stage === 'interview' && 
+                <ActualInterviewScreen stream={stream} />
+            }
+
+        </div>
+    )
+}
+
+export default InterviewRoom;
+
+
+
+
+
+
