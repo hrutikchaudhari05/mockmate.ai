@@ -56,6 +56,7 @@ userSchema.pre('save', async function() {
 // Password Compare karne kaa method
 // hame isse normal method kee tarah export nhi karna hota, jb hum model export karte hai uske saath ye method bhi bound hota hai
 userSchema.methods.matchPassword = async function(enteredPassword) {
+    // he method ke zaroorat sirf login api me hai
     // ye method user object ke saath chalega like --> existingUser.matchPassword(password)
     try {
         console.log("Comparing Passwords...");

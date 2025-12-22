@@ -1,54 +1,70 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from './ui/button';   
-import { Clock } from 'lucide-react';   // for timer
+import { Clock, Upload } from 'lucide-react';   // for timer
 import { Textarea } from './ui/textarea';
 
 // import useSelector for getting data from redux 
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-
-// import reducer 
-import { nextQuestion } from '@/store/interviewSlice';
-
+import { useNavigate, useParams } from 'react-router-dom';
+import { fetchInterviewById, submitAnswer, getTranscriptT, evaluateInverview } from '@/store/interviewSlice';
 
 const ActualInterviewScreen = ({ stream }) => {
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
-    // ALL Redux data needed
-    const interviewData = useSelector((state) => state.interview.currentInterview);
-    useEffect(() => {
-        console.log("InterviewData: ", interviewData);
-    }, [])
-
-    const interviewDuration = interviewData?.setup?.duration;   // default 30 mins
-    // console.log(interviewDuration)
+    // // ALL Redux data needed
+    const { currentInterview } = useSelector((state) => state.interview);
+    const { user } = useSelector(state => state.auth);
+    const userId = user?._id;
+    const interviewDuration = currentInterview?.duration;
+    const currQueIndex = currentInterview?.currentQuestionIndex;
+    const interviewQuestions = currentInterview?.questions;
+    const currentQuestion = currentInterview?.questions[currentInterview?.currentQuestionIndex];
+    
 
     // Refs 
     const mediaRecorderRef = useRef(null);  // recorder object re-initialize nhi hona chahiye, aur koi re-renders nhi karna chahiye 
     const chunksRef = useRef([]);   // ye raw audio bytes store karega 
     const recordTimerIdRef = useRef(null);    // timer kaa id store karta hai
+    const latestBlobRef = useRef(null);
 
     // all the local states 
+    const [attempts, setAttempts] = useState(0);
+    const [isConverting, setIsConverting] = useState(false);
     const [isRecording, setIsRecording] = useState(false);  // recording started or not
     const [recordSeconds, setRecordSeconds] = useState(0);  // recording ke time count karta hai
     const [isLoading, setIsLoading] = useState(false);  // double clicks prevent karne ke liye
     const [answer, setAnswer] = useState("");           // textarea me likha hua text 
     const [timeLeft, setTimeLeft] = useState(interviewDuration);     // global timer 
-    const [audioBlob, setAudioBlob] = useState(null);   // audio file save karne ke liye
+    // const [audioBlob, setAudioBlob] = useState(null);   // audio file save karne ke liye
+     
+    const {interviewId} = useParams();
+    console.log("Interview ID being sent: ", interviewId);
+
+    // ActualInterviewScreen.jsx me add:
+    useEffect(() => {
+        if (!currentInterview && interviewId) {
+            dispatch(fetchInterviewById(interviewId));
+        }
+    }, [currentInterview, interviewId, dispatch]);
+
+
+    useEffect(() => {
+        if (currentInterview) {
+            console.log("InterviewData: ", currentInterview);
+            console.log("Interview Duration: ", currentInterview.duration);
+            console.log("Interview Question: ", currentInterview?.questions);
+            console.log('InterviewId: ', interviewId);
+        }
+    }, [currentInterview])
     
 
-    const questions = [
-        "What is prop drilling and how to tackle it?",
-        "What is the difference between React.memo and useMemo?",
-        "Tell me how would you use useRef and useReducer?"
-    ];
-
-    
     useEffect(() => {
         console.log('Stream Prop: ', stream);
     }, [stream])
+
+    console.log("Interview Duration from Redux:", interviewDuration, "Type:", typeof interviewDuration);
 
     // agar user interview chhod kr dusre page pr gaya to bhi mic access active rahega, to uski wajah se following problems occur honge:
     // 1. battery drain karega 
@@ -87,70 +103,141 @@ const ActualInterviewScreen = ({ stream }) => {
 
     // sideEffect - timer countdown - auto submit interview when timer ends
     useEffect(() => {
+        // timer restore karna padega localStorage se 
+        const savedTime = localStorage.getItem('time_left');
+        const initialTime = savedTime ? parseInt(savedTime) : interviewDuration;
+        setTimeLeft(initialTime);
+
         const timer = setInterval(() => {
             setTimeLeft(prev => {
-                if (prev <= 0) {
-                    clearInterval(timer);
-                    handleEndInterview();   // time over - interview end 
-                    return 0;
+                // ab hame time ko hrr second localStorage me save karna padega 
+                // uske liye hrr baar pehle naya time banana padega 
+                const newTime = prev <= 0 ? 0 : prev - 1;
+
+                // ab newTime ko localStorage me save karenge 
+                localStorage.setItem('time_left', newTime);
+
+                if (newTime <= 0) {
+                    handleEndInterview();   // time over - interview end
+                    clearInterval(timer); 
                 }
-                return prev - 1;
+                return newTime;
             });
         }, 1000);
 
         // cleanup code - component unmount hone pr timer band kr do
-        return () => clearInterval(timer);
+        return () => {
+            clearInterval(timer);
+            localStorage.removeItem('time_left');
+        }
+    }, [interviewDuration]);
+
+    // back button disable
+    // useEffect(() => {
+    //     // Interview start hone ke baad back button block
+    //     window.history.pushState(null, '', window.location.href);
+        
+    //     window.onpopstate = () => {
+    //         window.history.pushState(null, '', window.location.href);
+    //         alert('Interview complete hone tak back nahi ja sakte!');
+    //     };
+        
+    //     return () => {
+    //         window.onpopstate = null; // Cleanup jab interview khatam ho
+    //     };
+    // }, []);
+
+    useEffect(() => {
+        // Force reload if user goes back
+        window.onbeforeunload = () => {
+            return "Interview chal raha hai, sure ho exit karna chahte ho?";
+        };
+        
+        return () => {
+            window.onbeforeunload = null;
+        };
     }, []);
 
 
     // ALL HANDLERS 
-    // 1 - start recording 
-    const handleStartRecording = () => {
+    // 1 - handle start recording 
+    const handleStartRecording = async () => {
+        // agar stream object nhi hai to record mt karo - permissions nhi hai 
+        if (!stream) {
+            console.log("Stream is not present");
+            return;
+        }
 
-        try {
-            // agar stream object nhi hai to record mt karo - permissions nhi hai 
-            if (!stream) {
-                console.log("Stream is not present");
+        chunksRef.current = [];
+
+        // 1. initialize mediaRecorder
+        // naya MediaRecorder banaya
+        mediaRecorderRef.current = new MediaRecorder(stream, {
+            mimeType: 'audio/webm'
+        });     // iske notes niche likhe hai
+
+        // ab audio data collect karna padega 
+        mediaRecorderRef.current.ondataavailable = (event) => {
+            // its like collecting water in bucket
+            if (event.data.size > 0) {
+                chunksRef.current.push(event.data);
+                // NOTES: humne chunksRef kyon use kiya --> audio data small pieces me aata hai, isliye array mein collect karna padta hai 
+            }
+        };
+
+        // recording ko rokne kaa logic  
+        mediaRecorderRef.current.onstop = () => {
+            console.log('Recording stopped, chunks: ', chunksRef.current.length);
+        
+            const newBlob = new Blob(chunksRef.current, { type: "audio/webm" });
+            latestBlobRef.current = newBlob;
+            console.log('Final Blob: ', newBlob.size);
+
+            setIsConverting(true);
+
+            // ye ek iife hai because .onstop cannot be async
+            (async () => {
+                const result = await dispatch(getTranscriptT({
+                    interviewId, 
+                    audioBlob: newBlob, 
+                    userId,
+                    currQueIndex
+                }));
+
+                if (getTranscriptT.fulfilled.match(result)) {
+                    setAnswer(prev => prev + "\n" + result.payload.transcript);
+                    setAttempts(prev => prev + 1);
+                }
+
+                setIsConverting(false);
+            })();
+        }
+        
+        // 2. ab actual recording start karni padegi 
+        mediaRecorderRef.current.start();
+        setIsRecording(true);
+
+        
+        // abhi recording timer shure karte hai 
+        recordTimerIdRef.current = setInterval(() => {
+            setRecordSeconds(prev => prev + 1);
+        }, 1000);
+    }
+
+    // combined action for handling audio recording 
+    const handleRecordAction = () => {
+        if (isRecording) {
+            // Stop recording and start conversion
+            handleStopRecording();
+            
+        } else {
+
+            if (attempts >= 3) {
+                alert("Reached maximum limit of recording audio! Please type you answer manually!");
                 return;
             }
-            
-            // 1. initialize mediaRecorder
 
-            // naya MediaRecorder banaya
-            mediaRecorderRef.current = new MediaRecorder(stream);     // iske notes niche likhe hai
-            
-            // ab audio data collect karna padega 
-            mediaRecorderRef.current.ondataavailable = (event) => {
-                // its like collecting water in bucket
-                if (event.data.size > 0) {
-                    chunksRef.current.push(event.data);
-                    // NOTES: humne chunksRef kyon use kiya --> audio data small pieces me aata hai, isliye array mein collect karna padta hai 
-                }
-            };
-
-            // recording ko rokne kaa logic 
-            mediaRecorderRef.current.onstop = () => {
-                // saare chunks ko combine karna padega 
-                const audioBlob = new Blob(chunksRef.current, {type: 'audio/webm'});    // iske notes niche likhe hai
-                setAudioBlob(audioBlob);
-                console.log('Audio saved: ', audioBlob.size, 'bytes');
-            };
-            
-            // 2. ab actual recording start karni padegi 
-            chunksRef.current = [];
-            mediaRecorderRef.current.start();
-            setIsRecording(true);
-
-            
-            // abhi recording timer shure karte hai 
-            recordTimerIdRef.current = setInterval(() => {
-                setRecordSeconds(prev => prev + 1);
-            }, 1000);
-
-        } catch (error) {
-            console.error('Recording failed: ', error);
-            setIsRecording(false);
-            alert('Recording failed! Please try again.');
+            handleStartRecording();
         }
     }
 
@@ -169,6 +256,18 @@ const ActualInterviewScreen = ({ stream }) => {
 
         setIsRecording(false);
         // baadme media recorder stop karenge aur blob ko transcript me convert karenge 
+
+        setRecordSeconds(0);
+
+    }
+
+
+    // testing audio playback 
+    const playAudio = () => {
+        const blob = latestBlobRef.current;
+        if (!blob) return;
+        const audioUrl = URL.createObjectURL(blob);
+        new Audio(audioUrl).play();
     }
 
 
@@ -178,10 +277,13 @@ const ActualInterviewScreen = ({ stream }) => {
     };
 
     // 4 - submit and next 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
+
+        setIsConverting(false);
+        setAttempts(0);
 
         // 0. pehle currQueIndex valid hai yaa nhi wo check karo 
-        if (currQueIndex >= questions.length - 1) {
+        if (currQueIndex >= currentInterview.questions.length - 1) {
             console.log("Interview Complete!");
             // ab auto submit karo feedback page pr 
             handleEndInterview();
@@ -192,25 +294,30 @@ const ActualInterviewScreen = ({ stream }) => {
         setIsLoading(true);
         // baadme: transcript + audio + questionId backend ko send karna padega 
 
-        // 2. currentAnswer ka object banake save karna padega 
-        const currentAnswer = {
-            text: answer,
-            audio: audioBlob,
-            questionIndex: currQueIndex,
-            timestamp: new Date().toISOString()
+        // 2. submit answer api call 
+        const result = await dispatch(submitAnswer({
+            interviewId: interviewId,
+            answerText: answer,
+            audioUrl: latestBlobRef.current ? 'temp_url' : ''
+
+        }))
+        
+        // 3. checking success 
+        if (submitAnswer.fulfilled.match(result)) {
+            // 4. local states ko reset karo - upar waale operations hone ke baad firse local states ko reset karna padega 
+            setAnswer('');
+            setRecordSeconds(0);
+            chunksRef.current = [];
+            latestBlobRef.current = null;
+
+            // 5. interviewData ko refresh karo 
+            dispatch(fetchInterviewById(interviewId));
+        } else {
+            // Error handling 
+            console.error("Submit failed: ", result.error);
         }
-        console.log("Saving Answer: ", currentAnswer);
 
-        // 3. next que pr move kiya - hum currentQuestionIndex redux se le rhe hai to usse update karne ke liye hame ek action bhi dispatch karna padega
-        dispatch(nextQuestion());
-
-        // 4. local states ko reset karo - upar waale operations hone ke baad firse local states ko reset karna padega 
-        setAnswer('');
-        setAudioBlob(null);
-        setRecordSeconds(0);
-        chunksRef.current = [];
-
-        // 5. Loading band karo 
+        // 6. Loading band karo 
         setTimeout(() => {
             setIsLoading(false);
         }, 500);
@@ -218,18 +325,36 @@ const ActualInterviewScreen = ({ stream }) => {
     }
 
     // 5 - End Interview 
-    const handleEndInterview = () => {
-        // final submission send karo, confirmation modal send karo 
-        // aur dusre page pr navigate kr do (feedback page)
-        // but abhi ke liye, setupInterview page pr navigate karta hoo for rechecking everything 
-        navigate("/dashboard")
-    }
+    const handleEndInterview = async () => {
+        // pehle localStorage me interview_active false karna padega 
+        localStorage.setItem('interview_active', 'false');
+        // final submission send karo, confirmation modal send karo
 
+        // showing loading state 
+        setIsLoading(true);
 
-    // extract currQueIndex from redux data 
-    const currQueIndex = interviewData?.currentQuestionIndex;
+        try {
+            await dispatch(evaluateInverview(interviewId)).unwrap();
 
-    
+            if (document.exitFullscreen) {
+                document.exitFullscreen
+            }
+
+            // aur dusre page pr navigate kr do (feedback page)
+            // but abhi ke liye, setupInterview page pr navigate karta hoo for rechecking everything 
+            navigate(`/feedback/${interviewId}`)
+
+        } catch (error) {
+            console.error("Evaluation failed: ", error);
+            alert('Feedback generation failed. Please try again.');
+            setIsLoading(false);
+        }
+        
+        // Back button normal karo
+        // window.onpopstate = null;
+
+        
+    }    
 
     return (
 
@@ -241,9 +366,9 @@ const ActualInterviewScreen = ({ stream }) => {
 
                 {/* left me jo interview details aur question index info hai uska div */}
                 <div>
-                    <h1 className='text-lg font-semibold'>{interviewData?.setup?.title || 'Loading...'}</h1>
+                    <h1 className='text-lg font-semibold'>{currentInterview?.title || 'Loading...'}</h1>
                     <div className='text-slate-500 mt-1 text-sm'>
-                        Question {currQueIndex + 1} of {questions.length}
+                        Question {currQueIndex + 1} of {currentInterview?.questions?.length}
                     </div>
                 </div>
 
@@ -276,7 +401,7 @@ const ActualInterviewScreen = ({ stream }) => {
                     
                     {/* QUESTION */}
                     <h2 className='text-3xl text-white mb-4 font-light'>
-                        {questions[currQueIndex]}
+                        {currentInterview?.questions[currQueIndex].questionObj.qtxt}
                     </h2>
 
                     {/* NOTE */}
@@ -317,19 +442,33 @@ const ActualInterviewScreen = ({ stream }) => {
                         {/* BOTTOM ACTIONS - START RECORDING & SUBMIT QUESTIONS */}
                         <div className='px-4 py-3 border-t border-slate-800 bg-slate-900 flex justify-between items-center'>
                             
-                            {/* START RECORDING */}
-                            <Button
-                                onClick={isRecording ? handleStopRecording : handleStartRecording}
-                            >
-                                {isRecording ? "Stop Recording" : "Record Voice"}
-                            </Button>
+                            <div className='flex items-center gap-3'>
+                                {/* START RECORDING */}
+                                <Button
+                                    className="bg-indigo-600 hover:bg-indigo-700"
+                                    disabled={attempts >= 3 || isConverting}
+                                    onClick={handleRecordAction}
+                                >
+                                    {isRecording ? "Stop Recording" : isConverting ? 'Converting to transcript...' : `Record Voice (${attempts}/3)`}
+                                </Button>
+
+                                {/* Show Saved Status */}
+                                {latestBlobRef.current && !isRecording && (
+                                    <span className='text-green-400 text-sm'>✓ Audio saved</span>
+                                )}
+
+                                <Button onClick={playAudio}>🔊 Test Play</Button>
+                                
+                            </div>
 
                             {/* NEXT BUTTON */}
                             <Button
                                 disabled={isLoading}
                                 onClick={handleSubmit}
                             >
-                                {currQueIndex >= questions.length - 1 ? (isLoading ? 'Saving...' : "End Interview") : (isLoading ? 'Saving...' : "Submit & Next")}
+                                {currQueIndex >= currentInterview?.questions.length - 1 
+                                    ? (isLoading ? 'Saving...' : "End Interview") 
+                                    : (isLoading ? 'Submitting...' : "Submit & Next")}
                                 
                             </Button>
                         </div>

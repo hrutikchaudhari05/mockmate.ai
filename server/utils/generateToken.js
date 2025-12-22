@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 
 // Token generate karne waala simple function
 const generateToken = (userId) => {
+    console.log("token gen started...")
 
     // payload (data) + secret key + options
     const token = jwt.sign(

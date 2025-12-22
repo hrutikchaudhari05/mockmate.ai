@@ -204,3 +204,15 @@ if (sessionStorage.getItem('mic_permission') === 'granted') {
 Stream store nahi kar sakte, permission status track kar sakte hain
 sessionStorage use kiya because fir (tab close hone pe clear ho jayega stream)
 
+# 2 - Timer Reset on Refresh
+- PROBLEM: ActualInterviewScreen pr refresh karne pr Timer first shuru hota hai
+- CURRENT FLOW: Local state 'timeLeft' initialize hota hai interviewDuration se -> Refresh kiya to -> Component re-mount -> State reset -> Timer firse start hoga (interviewDuration time se)
+- ROOT CAUSE: Timer state local hai, refresh pe wipe ho jaata hai
+- SOLUTION: Timer persist karna padega localStorage mein
+- IMPLEMENTATION: 
+// 1. Timer save karna hr second
+localStorage.setItem('time_left', newTime);
+// 2. Load karna component mount pr
+const savedTime = localStorage.getItem('time_left');
+const initialTime = savedTime ? parseInt(savedTime) : interviewDuration;
+- KEY POINT: State ko localStorage se sync karna padta hai taki refresh pr data maintain rahe

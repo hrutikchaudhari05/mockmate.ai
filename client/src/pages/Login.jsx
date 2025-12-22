@@ -31,7 +31,7 @@ const Login = () => {
         if (loginUser.fulfilled.match(result)) {
             // at this stage, redux ne already data store kr liya and token bhi localStorage me save kr liya
 
-            console.log('Login successful via Redux');
+            console.log('Login.jsx -> Login successful via Redux');
             navigate('/dashboard');
         }
         // agar fail hua to error automatically Redux state me store ho gya 
@@ -39,7 +39,9 @@ const Login = () => {
     };
 
     return (
-        <div className="flex items-center justify-center h-screen w-full bg-slate-950">
+        <div 
+            className="min-h-screen bg-gradient-to-br from-slate-950 to-indigo-950 text-white flex items-center justify-center w-full"
+        >
             <motion.div
                 className="w-full max-w-md p-8 md:p-10 bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl shadow-indigo-900/20"
             >
@@ -65,7 +67,7 @@ const Login = () => {
                             placeholder="Enter Email Address..."
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="pl-12" 
+                            className="pl-12 text-black" 
                         />
                     </div>
                     <div className="relative">
@@ -75,7 +77,7 @@ const Login = () => {
                             placeholder="Enter Your Password..."
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="pl-12"
+                            className="pl-12 text-black"
                         />
                     </div>
                     
@@ -88,7 +90,8 @@ const Login = () => {
                             type="submit"
                             disabled={isLoading}
                             size="lg"
-                            className="w-full py-3 font-bold shadow-lg shadow-indigo-700/50"
+                            className="w-full py-3 font-bold shadow-lg shadow-indigo-700/50 hover:text-indigo-500 "
+                            onClick={() => navigate('/dashboard')}
                         >
                             {isLoading ? (
                                 <motion.div>

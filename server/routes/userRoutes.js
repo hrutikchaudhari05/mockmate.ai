@@ -1,5 +1,5 @@
 const express = require('express');
-const {registerUser, getUsers, loginUser, getMyProfile} = require('../controllers/userController');
+const {registerUser, getUsers, loginUser, getMyProfile, verifyToken} = require('../controllers/userController');
 // auth middlware import karna padega
 const authMiddleware = require('../middleware/authMiddleware');
 
@@ -11,5 +11,7 @@ router.post('/login', loginUser);
 
 router.get('/', getUsers);
 router.get('/profile', authMiddleware, getMyProfile);
+
+router.get('/verify', authMiddleware, verifyToken);
 
 module.exports = router;

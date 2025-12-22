@@ -3,6 +3,7 @@ import axios from 'axios';
 
 
 // Login ke liye async thunk 
+// Thunks backend calls handle karte hain aur Redux ko data dete hain.
 export const loginUser = createAsyncThunk(
     'auth/login',   // Action type - unique identifier
 
@@ -19,8 +20,9 @@ export const loginUser = createAsyncThunk(
             );
 
             // Axios automatically JSON parse karta hai 
-            console.log('API Response:', response.data);
-            return response.data;
+            console.log('Thunk -> API Response:', response.data);
+
+            return response.data;   // Frontend ko data mil jaayega, redux me store karenge
 
         } catch (error) {
             console.log('API Error:', error.response?.data);
@@ -34,20 +36,65 @@ export const registerUser = createAsyncThunk(
     'auth/register',
     async (userData , {rejectWithValue}) => {
         try {
-            const response = await axios.post('http://localhost:5000/api/users/register', userData);
-            return response.data;
+
+            const response = await axios.post(
+                'http://localhost:5000/api/users/register', 
+                userData
+            );
+
+            return response.data;   // data redux me store karenge
+
         } catch (error) {
             return rejectWithValue(error.response?.data?.message || "Registration Failed!");
         }
     }
-) 
+);
+
+// Refresh pr Redux data clear ho jaata hai to user ko firse login karna padega, to prevent this hame Auto-Login enable karna padega...
+/* 
+    # Need: 
+    1. User refresh kare -> Redux state clear ho jata hai 
+    2. localStorage mein token hai but UI ko nhi pata 
+    3. User manually firse login karega, but auto-login se better UX milega
+    ## iski need simply ye hei ki, jb user login karta hai manually, tb token localStorage me save hota hai and redux me bhi hota hai, also redux me user ke state bhi save hoti hai as we get it from api response, to jb frontend pr refresh karta hai user tb redux se user info and token dono vanish ho jaate hai, to isko prevent karne ke liye, hum and verify user waali api banate hai jo user ko verify karti hai by tkaing the token from localStorage , aur wo api user Data and token bhi restore karti hai redux me
+*/
+// Token verify karne ka thunk
+export const autoLogin = createAsyncThunk(
+    'auth/autoLogin',     // Action type for redux
+    async (_, { rejectWithValue }) => { // means no parameters are needed
+        try {
+            // 1 - localStorage me to token persist karta hai to bring it here
+            const token = localStorage.getItem('token');
+
+            // 2 - make api call 
+            const response = await axios.get(
+                'http://localhost:5000/api/users/verify', {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
+            // backend se aaye huye res ko frontend ko de do 
+            return response.data;
+
+        } catch (error) {
+            console.log("VerifyTokenTHUNK -> Error in verifying token: ", error.message);
+            // if token invalid, usko localStorage se remove karo 
+            localStorage.removeItem('token');
+            // Send error to redux
+            return rejectWithValue('Session expired!')
+        }
+    }
+)
+
 
 // initial state - user ki current status
 const initialState = {
-    isAuthenticated: true, // Batayega, user logged in hai yaa nhi
-    user: null,             // User details (name, email)
-    token: null,            // JWT Token
-    isLoading: false,       // Loading State
+    isAuthenticated: false, // Batayega, user logged in hai yaa nhi
+    user: null,             // User object (name, email, userId)
+    token: null,            // JWT token for API calls
+    isLoading: false,       // Loading Spinner ke liye
     error: null             // Error message Store karega
 }
 
@@ -63,7 +110,8 @@ const authSlice = createSlice({
             state.user = null;
             state.token = null;
             state.error = null;
-        }
+        },
+
         
     },
     extraReducers: (builder) => {
@@ -81,6 +129,7 @@ const authSlice = createSlice({
                 state.user = action.payload.user;    // User data store karo
                 state.token = action.payload.token;  // Token store karo
                 state.error = null;            // Errors clear karo
+                localStorage.setItem('token', action.payload.token);
                 console.log('Login successful!');
             })
             // CASE 3: Login fail hua
@@ -102,6 +151,7 @@ const authSlice = createSlice({
                 state.user = action.payload.user;
                 state.token = action.payload.token;
                 state.error = null;
+                localStorage.setItem('token', action.payload.token);
             })
             // CASE 6: Register fail hua 
             .addCase(registerUser.rejected, (state, action) => {
@@ -109,6 +159,30 @@ const authSlice = createSlice({
                 state.error = action.payload;
                 state.isAuthenticated = false;
             })
+            // CASE 7: Auto-login trying
+            .addCase(autoLogin.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
+            })
+            // CASE 8: Auto-login successful
+            .addCase(autoLogin.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.error = null;
+                state.isAuthenticated = true;
+                state.token = action.payload.token;
+                state.user = action.payload.user;
+                console.log("Auto-login successful!");
+            })
+            // CASE 9: Auto-login fail hua 
+            .addCase(autoLogin.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload;
+                state.isAuthenticated = false;
+                state.user = null;
+                state.token = null;
+                console.log('Auto-login failed!');
+            })
+            
     }
 });
 

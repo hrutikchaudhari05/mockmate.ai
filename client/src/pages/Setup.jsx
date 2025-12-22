@@ -24,11 +24,11 @@ const Setup = ({onClose}) => {
     const [formData, setFormData] = useState({
         title: "",
         type: "",
-        difficulty: "",
+        experience: "",
         duration: "", // default 30 mins
-        jd: "",
-        companies: "",
-        context: "",
+        jobDescription: "",
+        targetCompanies: "",
+        interviewContext: "",
         resume: null
     });
 
@@ -48,58 +48,44 @@ const Setup = ({onClose}) => {
 
         setFormData(prev => ({
             ...prev,
-            [field]: field === 'duration' 
-                ? value === "" ? "" : parseInt(value) * 60
-                : value // for other values
+            [field]: value
         }));
     };
+    
+    // handleStartInterview handler after setting up backend 
+    const handleStartInterview = async (e) => {
+        e.preventDefault();
+        localStorage.setItem('interview_active', 'false');
 
-    // handleStartInterview
-    const handleStartInterview = async () => {
-
-        // check current state 
-        // console.log("Current formData: " ,formData);
-
-        // console.log("Title: ", formData.title);
-        
-
-        // ek complete interview Object banana padega because at this moment hum ne sirf interview ke liye setup kiya hai, but hame current interview session ke baare me hr cheeze ek object me store karni padegi like AI questions, User responses, currentQueIndex, and saath me hame status bhi maintain karna padega like (setup, ongoing, finished)
-        const interviewData = {
-            setup: formData,
-            questions: [],
-            responses: [],
-            currentQuestionIndex: 0,
-            status: 'setup'
-        }
-
-        // Only if Start button clicked (form valid)
         if (formIsValid) {
 
-            // first save data in localStorage 
-            localStorage.setItem('mockmate_interview', JSON.stringify(interviewData));
-            localStorage.setItem('interview_active', 'false');  // ye imp hai future me - user ko back aane se rokne ke liye and refresh click kiya to bhi kuchh naa karne ke liye
-            // localStorage me save karne ka reason: 
-            // 1. redux me data sirf temp save hota hai, aur agar page refresh yaa rerender hua to wo data lost ho jaata hai
-            // 2. isiliye hum wo data ko localStorage me store karte hai, jb user submit button pr click karta hai tb 
-        
+            // converting duration to seconds before sending 
+            const dataToSend = {
+                ...formData,
+                duration: Number(formData.duration) * 60
+            }
 
-            // save the interviewData in redux 
-            //console.log("Interview Data before dispatch:", interviewData);
+            // Direct dataToSend bheja (nested nhi)
+            const result = await dispatch(createInterview(dataToSend));
+            console.log('Dispatch Result: ', result);
 
-            /**
-                1. dispatch(action) → Redux store update
-                2. Redux store change → Components automatically re-render
-                3. useSelector → Updated data mil jata hai
-             */
-            await dispatch(createInterview(interviewData));
-            //console.log("After dispatch:", interviewData)
+            if (createInterview.fulfilled.match(result)) {
+                const interviewId = result.payload.interview?.id;
+                console.log('Interview created, ID:', interviewId);
+    
+                if (interviewId) {
+                    onClose();
+                    navigate(`/interview-room/${interviewId}`);
+                } else {
+                    console.error('Interview ID missing:', result.payload);
+                    onClose()
+                }
+            } else {
+                onClose();
+            }
 
-            navigate('/interview-room');
+            
         }
-
-        onClose();
-
-        console.log(formData);
     }
 
 
@@ -136,7 +122,7 @@ const Setup = ({onClose}) => {
                         <div className='border border-slate-800 rounded-md mt-2 mb-3'></div>
 
                         {/* Yahan tera form aayega */}
-                        <form className="space-y-3 text-white mb-2">
+                        <form onSubmit={handleStartInterview} className="space-y-3 text-white mb-2">
                             
                             {/* Title Input Area */}
                             <div className='border rounded-md border-slate-700 flex flex-row items-center cursor-pointer py-1'>
@@ -192,16 +178,16 @@ const Setup = ({onClose}) => {
                                 </Select>
                             </div>
 
-                            {/* Difficulty Level Dropdown menu */}
+                            {/* Experience Level Dropdown menu */}
                             <div className='border rounded-md border-slate-700 flex flex-row items-center cursor-pointer py-1'>
                                 <p className='text-lg flex items-center justify-center text-slate-400 w-1/2'>Difficulty Level</p>
                                 
                                 <Select
-                                    value={formData.difficulty}
-                                    onValueChange={(value) => handleChange('difficulty', value)}
+                                    value={formData.experience}
+                                    onValueChange={(value) => handleChange('experience', value)}
                                 >
                                     <SelectTrigger className="bg-transparent border-0 border-l rounded-none border-slate-500 text-center justify-center focus:ring-0 focus:ring-offset-0 focus:outline-none ring-0 ring-offset-0 ouline-none w-full data-[placeholder]:text-slate-500">
-                                        <SelectValue className='justify-center ' placeholder="Interview Difficulty... e.g. 3-5 years (Associate)" />
+                                        <SelectValue className='justify-center ' placeholder="Experience Level... e.g. 3-5 years (Associate)" />
                                     </SelectTrigger>
                                     <SelectContent className="bg-slate-900 text-white border border-slate-600">
                                         <SelectItem
@@ -258,8 +244,8 @@ const Setup = ({onClose}) => {
                                 <p className='text-lg flex items-center justify-center text-slate-400 w-1/2'>Duration</p>
                                 
                                 <Select
-                                    value={formData.duration ? (formData.duration / 60).toString() : ''}
-                                    onValueChange={(value) => handleChange('duration', value)}
+                                    value={formData.duration ? formData.duration.toString() : ""}
+                                    onValueChange={(value) => handleChange('duration', Number(value))}
                                 >
                                     <SelectTrigger className="bg-transparent border-0 border-l rounded-none border-slate-500 text-center justify-center focus:ring-0 focus:ring-offset-0 focus:outline-none ring-0 ring-offset-0 ouline-none w-full data-[placeholder]:text-slate-500">
                                         <SelectValue className='justify-center ' placeholder="Interview Duration... e.g. 60 mins (Full Simulation)" />
@@ -323,8 +309,8 @@ const Setup = ({onClose}) => {
                                         maxHeight: '200px',
                                         overflowY: 'auto', 
                                     }}
-                                    value={formData.jd}
-                                    onChange={(e) => handleChange('jd', e.target.value)}
+                                    value={formData.jobDescription}
+                                    onChange={(e) => handleChange('jobDescription', e.target.value)}
                                 />
                                 
                             </div>
@@ -336,8 +322,8 @@ const Setup = ({onClose}) => {
                                 <Input 
                                     className="bg-transparent border-0 border-l rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 text-2xl text-center placeholder:text-slate-500 border-slate-500" 
                                     placeholder="e.g. Google, Microsoft, Perplexity..."
-                                    value={formData.companies}
-                                    onChange={(e) => handleChange('companies', e.target.value)}
+                                    value={formData.targetCompanies}
+                                    onChange={(e) => handleChange('targetCompanies', e.target.value)}
                                 />
                                 
                             </div>
@@ -349,8 +335,8 @@ const Setup = ({onClose}) => {
                                 <Input 
                                     className="bg-transparent border-0 border-l rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 text-2xl text-center placeholder:text-slate-500 border-slate-500" 
                                     placeholder="e.g. ask only DSA questions, give ratings out of 10..."
-                                    value={formData.context}
-                                    onChange={(e) => handleChange('context', e.target.value)}
+                                    value={formData.interviewContext}
+                                    onChange={(e) => handleChange('interviewContext', e.target.value)}
                                 />
                                 
                             </div>
@@ -380,7 +366,7 @@ const Setup = ({onClose}) => {
                                         Cancel
                                     </Button>
                                     <Button 
-                                        onClick={handleStartInterview}
+                                        type="submit"
                                         className="bg-indigo-700 text-white px-6 py-2 rounded-lg hover:bg-indigo-600"
                                     >
                                         Start Interview

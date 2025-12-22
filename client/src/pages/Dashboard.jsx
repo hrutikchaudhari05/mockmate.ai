@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {useState} from 'react'; // Setup popup ko dikhane ke liye
 
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
@@ -6,11 +6,15 @@ import {Table, TableBody, TableCell, TableRow} from '@/components/ui/table'
 import {Award, Target, Clock, Flame, Play} from 'lucide-react';
 import {Button} from '@/components/ui/button'
 
+import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+
 // import Setup component for setting up interview 
 import Setup from './Setup';
 
 // Framer Motion 
 import {motion, AnimatePresence} from 'framer-motion';
+import { fetchAllInterviews } from '@/store/interviewSlice';
 
 // card forming function 
 const StatCard = ({ title, content, icon: Iconn, color}) => {
@@ -29,6 +33,13 @@ const StatCard = ({ title, content, icon: Iconn, color}) => {
 
 
 const Dashboard = () => {
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+
+    // Redux se data liya - allInterviews List and other states 
+    //const { interviews, interviewsLoading, interviewsError } = useSelector((state) => state.interview);
+    const user = useSelector((state) => state.auth.user);
+
     // state to make Setup visible/invisible
     const [showSetup, setShowSetup] = useState(false);
 
@@ -36,6 +47,16 @@ const Dashboard = () => {
     const handleCloseSetup = () => {
         setShowSetup(false);
     };
+    
+    useEffect(() => {
+        dispatch(fetchAllInterviews());
+    }, [dispatch])
+
+    useEffect(() => {
+        if (!user) navigate('/login');
+    }, [user]);
+
+    
 
     return (
 
@@ -54,7 +75,7 @@ const Dashboard = () => {
 
                 <div>
                     <h1 className='text-4xl font-bold text-white'>
-                        Welcome back, Hrutik!
+                        {`Welcome back, ${user?.name || 'Name'}!`}
                     </h1>
                     <p className='text-slate-400 mt-2 text-xl'>
                         Ready to crush your next interview?

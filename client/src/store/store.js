@@ -7,8 +7,12 @@ const store = configureStore({
         auth: authReducer,
         interview: interviewReducer
     },
+
+    // devTools enable karna padega
+    devTools: process.env.NODE_ENV !== 'production',
 });
 
-console.log("redux store created successfully!");
+console.log("Store -> redux store created successfully!");
+console.log('Store -> Token: ', localStorage.getItem('token'));
 
 export default store;

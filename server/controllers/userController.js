@@ -1,12 +1,14 @@
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
 const generateToken = require('../utils/generateToken');    // token generator function import kiya utils se
+const { findOne } = require('../models/InterviewSession');
 
 // register user api logic
 const registerUser = async (req, res) => {
     try {
         // take info from req.body
         const {name, email, password} = req.body;
+        console.log("Registration ke liye req se user data liya...")
 
         // check if that user is already present in the database or not (check for email as it is unique)
         const userExists = await User.findOne({email});
@@ -19,14 +21,18 @@ const registerUser = async (req, res) => {
         const newUser = new User({
             name, email, password
         });
+        console.log('New User object banaya...', newUser);
 
         // SAVE method ko call karo, yeh trigger karega pre('save') middleware
         await newUser.save();
+        console.log("new User db me save kiya")
 
         // JWT token generate karo aur response me bhejo
         const token = generateToken(newUser._id);
+        console.log("Token Generate Kiya: ", token);
         // after registeration automatically login hone ke liye yaha token generate ...
 
+        // ab response send karenge frontend ko
         res.status(201).send({
             message: 'User registered successfully!',
             user: {
@@ -50,6 +56,7 @@ const loginUser = async (req, res) => {
         console.log("User login started...");
 
         const {email, password} = req.body;
+
 
         // check if user with this email already present or not, if not present tell the user to register first
         const existingUser = await User.findOne({email});
@@ -136,4 +143,35 @@ const getMyProfile = async (req, res) => {
     }
 }
 
-module.exports = {registerUser, getUsers, loginUser, getMyProfile};
+// Auto login ke liye API 
+const verifyToken = async (req, res) => {
+    try {
+        // NOTE: ye protected route waali api hai to middleware userId attach kr dega isko
+        // 1 - pehle user data fetch karo backend se 
+        const user = await User.findById(req.user.id).select('-password');
+
+        // 2 - verify if user exist or not 
+        if (!user) {
+            return res.status(404).send({ message: 'User not found' });
+        }
+
+        // 3 - send response to frontend 
+        res.status(200).send({
+            message: "Token is valid!",
+            user : {
+                id: user._id,
+                name: user.name,
+                email: user.email
+            },
+            token: req.header('Authorization').replace('Bearer ', '')
+        });
+
+    } catch (error) {
+        console.log("verifyToken -> Error in verifying token", error.message);
+        res.status(500).send({
+            message: "Server Error!"
+        });
+    }
+}
+
+module.exports = {registerUser, getUsers, loginUser, getMyProfile, verifyToken};

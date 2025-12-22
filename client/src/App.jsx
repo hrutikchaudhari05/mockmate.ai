@@ -2,22 +2,26 @@ import './App.css'
 import Login from './pages/Login';
 import Register from './pages/Register';
 import {BrowserRouter, Routes, Route, Navigate} from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
 // import useSelector as we need the state isAuthenticated
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 // import components
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import InterviewRoom from './pages/InterviewRoom';
+import Feedback from './pages/Feedback';
+import Landing from './pages/Landing';
+import { autoLogin } from './store/authSlice';
+import LoadingScreen from './components/LoadingScreen';
 
 
 // create AuthenticateRoute 
 const AuthenticatedRoute = ({children}) =>  {
 
   // pehle user authenticated hai yaa nhi iska state le lo redux se 
-  // const {isAuthenticated} = useSelector(state => state.auth);
-  const isAuthenticated = true;
+  const {isAuthenticated} = useSelector(state => state.auth);
 
   console.log('App.jsx -> User Logged In...', isAuthenticated);
 
@@ -30,11 +34,46 @@ const AuthenticatedRoute = ({children}) =>  {
   return <Layout>{children}</Layout>;
 };
 
+// separate auth wrapper for InterviewRoom as there is no need of showing layout 
+const InterviewAuthWrapper = ({ children }) => {
+  const { isAuthenticated } = useSelector((state) => state.auth);
+  const token = localStorage.getItem('token');
+
+  // App.jsx - InterviewAuthWrapper mein
+  console.log('InterviewAuthWrapper - Auth:', isAuthenticated, 'Token:', !!token);
+
+  if (!isAuthenticated && !token) {
+    return <Navigate to="/login"/>;
+  }
+
+  return children;
+}
 
 
 function App() {
-  const isAuthenticated = true; // Ya Redux se lo
-  
+  const dispatch = useDispatch();
+  const [appLoading, setAppLoading] = useState(true);
+
+  // App load pr auto-login 
+  useEffect(() => {
+    console.log("App Loading... checking auth...");
+    const checkAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        // auto-login attempt 
+        await dispatch(autoLogin());
+      }
+      setAppLoading(false);
+    }
+    checkAuth();
+  }, [dispatch]);
+
+
+  if (appLoading) {
+    return <LoadingScreen />;
+  }
+
+    
   return (
     <BrowserRouter> {/* Router add kiya, navigation enable karne ke liye */}
       <Routes>
@@ -51,12 +90,25 @@ function App() {
         } />
 
         {/* Protected Route - InterviewRoom */}
-        <Route path="/interview-room" element={
-          isAuthenticated ? <InterviewRoom /> : <Navigate to="/login" />
+        <Route path="/interview-room/:interviewId" element={
+          <InterviewAuthWrapper>
+            <InterviewRoom />
+          </InterviewAuthWrapper>
+        } />
+
+        
+
+        
+
+        {/* Protected Route - Feedback */}
+        <Route path="/feedback/:interviewId" element={
+          <AuthenticatedRoute>
+            <Feedback />
+          </AuthenticatedRoute>
         } />
 
         {/* Root path ko dashboard pe redirect karo */}
-        <Route path='/' element={<Navigate to="/dashboard" replace />} />
+        <Route path='/' element={<Landing />} />
       </Routes>
     </BrowserRouter>
   )

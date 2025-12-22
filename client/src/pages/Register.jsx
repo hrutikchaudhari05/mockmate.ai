@@ -44,7 +44,7 @@ const Register = () => {
     }
 
     return (
-        <div className='flex items-center justify-center h-screen w-full bg-slate-950'>
+        <div className='min-h-screen bg-gradient-to-br from-slate-950 to-indigo-950 text-white flex items-center justify-center w-full'>
             <motion.div className='w-full max-w-lg p-8 md:p-10 bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl shadow-indigo-900/20'>
                 <header className='text-center mb-8'>
                     <div className='w-10 h-10 bg-indigo-600 rounded-lg flex items-center text-white justify-center mx-auto mb-3'>AI</div>
@@ -63,7 +63,7 @@ const Register = () => {
                             placeholder="Enter You Name..."
                             value={formData.name}
                             onChange={handleChange}
-                            className="pl-12"
+                            className="pl-12 text-black"
                             name="name"
                         />
                     </motion.div>
@@ -74,7 +74,7 @@ const Register = () => {
                             placeholder="Enter You Email..."
                             value={formData.email}
                             onChange={handleChange}
-                            className="pl-12"
+                            className="pl-12 text-black"
                             name="email"
                         />
                     </motion.div>
@@ -85,7 +85,7 @@ const Register = () => {
                             placeholder="Enter You Password..."
                             value={formData.password}
                             onChange={handleChange}
-                            className="pl-12"
+                            className="pl-12 text-black"
                             name="password"
                         />
                     </motion.div>

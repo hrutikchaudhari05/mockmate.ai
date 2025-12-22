@@ -1,23 +1,55 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Mic, Headphones } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 // redux imports 
 import { useSelector } from 'react-redux';
+import { useNavigate, useParams } from 'react-router-dom';
+
+// Add these imports
+import { useDispatch } from 'react-redux';
+import { beginInterview } from '@/store/interviewSlice';
+
 
 const PreInterviewScreen = ({onStart}) => {
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const [showExitConfirm, setShowExitConfirm] = useState(false);
+    const [showFullscreenBtn, setShowFullscreenBtn] = useState(false);
+    const [localStream, setLocalStream] = useState(null);
+    const [showCountdown, setShowCountdown] = useState(false);
+
+    // useRef to limit showFullScreenBtn appearance 
+    const retryCountRef = useRef(0);
+    const MAX_RETRIES = 2;
+
+    const { interviewId } = useParams();
+
+    
+   
 
     // redux se interview data lo 
-    const interviewData = useSelector((state) => state.interview.currentInterview)
-    console.log(interviewData?.setup)
+    const { currentInterview, interviewLoading } = useSelector((state) => state.interview)
+    console.log("mmm Interview Data: ", currentInterview)
+    console.log("Interview Questions: ", currentInterview?.questions?.map(q => q.questionObj));
+
+    
+
     // validating interviewData is present or not 
     useEffect(() => {
-        if (!interviewData){
+        if (interviewLoading) {
+            return;     // Still loading, don't check yet
+        }
+        if (!currentInterview && !interviewLoading){
             console.warn("No interview data found in Redux!");
             // yaha pr redirect kr sakte hai apan - direct to setup page again
             // navigate('/dashboard');
+            const timeout = setTimeout(() => {
+                navigate('/dashboard');
+            }, 3000);
+            return () => clearTimeout(timeout);
         }
-    }, [interviewData]);
+    }, [currentInterview, interviewLoading, navigate]);
     
 
     // isStarting state for knowing the timer that insterview is getting started
@@ -26,22 +58,50 @@ const PreInterviewScreen = ({onStart}) => {
     // const [mediaStream, setMediaStream] = useState(null);   // sirf cleanup ke liye - jb current component unmount hoga tb mediaStream bhi stop kr do
     // actually mediaStream ek object store karta hai named stream ( jisme user ke media permissions stored hote hai )
     
+    
+
+    // mic allow permission popup by browser 
+    const requestPermissions = async () => {
+        try {
+            
+            // audio permission req,
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            console.log("Stream: ", stream)
+            // ab stream ko iss component ke local state me save karna padega 
+            setLocalStream(stream);
+            
+            // ab permission status ko sessionStorage me save karenge 
+            sessionStorage.setItem('mic_permission', 'granted');  
+            // is info kaa use iska parent (interivewRoom) karega, if in case stream nhi mili ActualInterview page pr to...
+
+            // dispatch the beginInterview thunk
+            dispatch(beginInterview(interviewId));
+
+            // ab full-screeh button show karna padega, 
+            setShowFullscreenBtn(true);
+
+            setIsStarting(true);
+
+        } catch (error) {
+            console.error('Mic access denied: ', error, error.name, error.message);
+            // alert('Microphone access required for interview');
+        }
+    }
 
     // ye wo 5.4.3.2.1... waala countdown kaa code hai 
     // startCountdown function
-    function startCountdown(stream) {
-        setIsStarting(true);
+    function startCountdown(strm) {
+        setShowCountdown(true);
 
         const timer = setInterval(() => {
             setCountdown(prev => {
                 if(prev === 1) {
                     clearInterval(timer);   // 1. timer band ho jb time khatam ho jaaye
-                    console.log("InterviewData:", interviewData);
-                    //c onsole.log("Before onStart, mediaStream: ", mediaStream);
-                    // localStorage.setItem('mockmate_interview', JSON.stringify(interviewData));
+                    console.log("InterviewData:", currentInterview);
+                    
                     localStorage.setItem('interview_active', 'true');
-                    console.log(stream)
-                    onStart(stream);
+                    console.log(strm)
+                    onStart(strm);
                     return 0;
                 }
                 return prev - 1;
@@ -56,40 +116,55 @@ const PreInterviewScreen = ({onStart}) => {
         };
     };
 
-    // mic allow permission popup by browser 
-    const requestPermissions = async () => {
-        try {
-            // audio permission req,
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            console.log("Stream: ", stream)
-            
-            // ab permission status ko sessionStorage me save karenge 
-            sessionStorage.setItem('mic_permission', 'granted');  
-            // is info kaa use iska parent (interivewRoom) karega, if in case stream nhi mili ActualInterview page pr to...
 
-            startCountdown(stream);
+    // Dedicated function for entering in full-screen mode 
+    const enterFullScreenAndStart = async () => {
+        try {
+            // MIMP: full screen mode sirf user-gesture pr hee enter hota hai, to uske liye permission leni zaroori hai, hum countdown pr ye cheeze nhi kr sakte,
+            await document.documentElement.requestFullscreen();
+
+            // ab countdown start karna padega 
+            startCountdown(localStream);
+            
+            // ab fullScreenEnter button ko hide karna padega 
+            setShowFullscreenBtn(false);
+
+            // ab button ke retry count ko 0 pr reset karte hai 
+            retryCountRef.current = 0;
+
         } catch (error) {
-            console.error('Mic access denied: ', error);
-            alert('Microphone access required for interview');
+            console.log('Full-screen cancelled, starting normally...', error);
+
+            if (retryCountRef.current < MAX_RETRIES) {
+                retryCountRef.current += 1;
+                alert(`Full Screen Permission denied! Please allow it to continue... (Attempt ${retryCountRef.current}/${MAX_RETRIES}`);
+                setTimeout(() => enterFullScreenAndStart(), 1000);
+            } else {
+                alert("Cannot start without fullscreen. Starting interview in normal mode...");
+                // ab without fullscreen chalu karo 
+                startCountdown(localStream);
+                setShowFullscreenBtn(false);
+
+                retryCountRef.current = 0;
+            }
         }
     }
 
 
-    // Countdown component mein
+    // Custom back navigation warning popup
     useEffect(() => {
-        // Browser back button disable karo jb countdown start ho jaaye 
-        if (isStarting) {
-            window.history.pushState(null, null, window.location.pathname);
-            window.onpopstate = () => {
-                window.history.pushState(null, null, window.location.pathname);
-            };
-        }
-        
-        return () => {
-            // ab back button normal kr do
-            window.onpopstate = null; // Cleanup
+        const handlePopState = () => {
+            // Custom modal show karo
+            setShowExitConfirm(true);
+            // History restore karo
+            window.history.pushState(null, '', window.location.href);
         };
-    }, [isStarting]);
+
+        window.history.pushState(null, '', window.location.href);
+        window.addEventListener('popstate', handlePopState);
+
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, []);
 
     
     
@@ -101,32 +176,65 @@ const PreInterviewScreen = ({onStart}) => {
             min-h-screen bg-slate-950
             '
         >
-            <h1 className="text-4xl font-bold mb-6">Instructions</h1>
+            {interviewLoading ? (
+                <div className="flex flex-col items-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mb-4"></div>
+                    <p>Loading your interview...</p>
+                </div>
+            ) : (
+                <>
+                <h1 className="text-4xl font-bold mb-6">Instructions</h1>
       
-            <div className="space-y-4 max-w-2xl text-center">
-                <div className="flex items-center gap-3">
-                    <Mic className="text-indigo-500" />
-                    <p>Please allow microphone access when prompted</p>
+                <div className="space-y-4 max-w-2xl text-center">
+                    <div className="flex items-center gap-3">
+                        <Mic className="text-indigo-500" />
+                        <p>Please allow microphone access when prompted</p>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                        <Headphones className="text-indigo-500" />
+                        <p>Use headphones for best audio quality</p>
+                    </div>
                 </div>
-                
-                <div className="flex items-center gap-3">
-                    <Headphones className="text-indigo-500" />
-                    <p>Use headphones for best audio quality</p>
-                </div>
-            </div>
 
-            <Button 
-                disabled={isStarting}
-                onClick={requestPermissions}
-                className="mt-12 px-8 py-6 text-lg bg-slate-900 hover:bg-indigo-600"
-            >
-                Begin Interview
-            </Button>
+                <Button 
+                    disabled={isStarting}
+                    onClick={requestPermissions}
+                    className="mt-12 px-8 py-6 text-lg bg-slate-900 hover:bg-indigo-600"
+                >
+                    Begin Interview
+                </Button>
 
-            {isStarting && (
-                <div className="mt-4 text-indigo-400 text-xl font-bold">
-                    Starting in {countdown} seconds...
-                </div>
+                {showFullscreenBtn && (
+                    <Button onClick={enterFullScreenAndStart}>
+                        🚀 Enter Full-Screen & Start Interview
+                    </Button>
+                )}
+
+                {showExitConfirm && (
+                    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
+                        <div className="bg-slate-800 p-6 rounded-lg">
+                            <h3 className='text-xl font-bold mb-4'>Exit Interview Setup?</h3>
+                            <p className='mb-6'>Your progress will be lost.</p>
+                            <div className='flex gap-4'>
+                                <Button 
+                                    onClick={() => navigate('/dashboard')}
+                                    variant="destructive"
+                                >
+                                    Exit
+                                </Button>
+                                <Button onClick={() => setShowExitConfirm(false)}>Continue Setup</Button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {showCountdown && (
+                    <div className="mt-4 text-indigo-400 text-xl font-bold">
+                        Starting in {countdown} seconds...
+                    </div>
+                )}
+                </>
             )}
         </div>
     )
