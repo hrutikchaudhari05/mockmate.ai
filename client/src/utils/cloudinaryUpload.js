@@ -2,13 +2,14 @@ import axios from 'axios';
 
 // ye function directly public url generate kr ke dega 
 
-export const uploadAudioToCloudinary = async (blob) => {
+export const uploadAudioToCloudinary = async (blob, interviewId, questionIndex, attempt) => {
 
     // 1 - formData object banate hai jo data ko binary form me leke jaayega 
     const formData = new FormData();
     formData.append('file', blob);
     formData.append('upload_preset', 'interview_audio');
-    formData.append('folder', 'mockmate_audio');
+    formData.append('folder', `mockmate_audio/${interviewId}/${questionIndex}`);
+    formData.append('public_id', `attempt_${attempt}_${Date.now()}`);   // Unique ID
 
     const cloudName = 'disuxoqxj';
 
