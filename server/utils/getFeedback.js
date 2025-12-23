@@ -14,11 +14,18 @@ const getOverallFeedback = async (currentInterview) => {
             INTERVIEW PERFORMANCE SUMMARY:
             ${questions.map((q, i) => `
                 Question ${i+1} (${q.questionObj.qd} ${q.questionObj.qtyp}):
-                ${q.questionObj.qtxt} ${q.feedbackObj.score} ${q.feedbackObj.summary}
+                ${q.questionObj.qtxt} 
+                Score: ${q.feedbackObj?.score} 
+                Feedback: ${q.feedbackObj.summary}
                 Answer: ${q.answerText || "No answer provided - score 0"}
             `).join('\n')}
 
-            - take avg of scores of all questions and add or remove numbers from that based on the interview data, and return final number.
+
+            SCORING METRICS (Calculate 0-100 overall score):
+            1. TECHNICAL COMPETENCY (x/40) - Based on individual question scores above
+            2. ROLE ALIGNMENT (x/25) - Match with ${currentInterview.experience} level ${currentInterview.type} for ${currentInterview.title} requirements.
+            3. COMMUNICATION & CLARITY (x/20) - Based on answer quality and structure
+            4. COMPANY FIT (X/15) - Suitability for ${currentInterview.targetCompanies}
 
             EVALUATION CRITERIA:
             1. Technical accuracy and depth 
@@ -27,13 +34,15 @@ const getOverallFeedback = async (currentInterview) => {
             4. Problem-solving approach
             5. Areas of improvement
 
+            NOTE: Provide some specific strengths and improvement tips on actual answers.
+
             OUTPUT FORMAT (JSON only):
             {
                 "score": 78,
                 "summary": "Overall feedback summary in 4-5 sentences",
-                "strengths": ["strength1", "strength2", ....],
-                "improvements": ["area1", "area2", ...],
-                "recommendation": "strong fit | considerable fit | underperformed | not recommended"
+                "strengths": ["strength1", "strength2", ...],
+                "improvementTips": ["area1", "area2", ...],
+                "recommendation": "strong fit | considerable fit | needs improvement | not recommended"
             }
 
             Return ONLY valid JSON. No explanations.
@@ -70,14 +79,19 @@ const getQuestionWiseFeedback = async (currentInterview, batchQuestions, startIn
     const prompt = `
         You are evaluating individual questions from a ${currentInterview.experience} level ${currentInterview.type} interview.
         Give score to the question based on following factors: (first score each question out of 100 and then divide result by 10)
-        - correctness: x/25 
-        - coverage of imp points: x/15,
-        - reasoning/explanation: x/20,
-        - clarity: x/5,
-        - keywords: x/10,
-        - practicality: x/5,
-        - depth (number of words as compared to wc): x/20
-        - then calculate the total sum of marks got out of 10 in these 7 factors, and return the value
+        1. correctness: x/25 
+        2. coverage of imp points: x/15,
+        3. reasoning/explanation: x/20,
+        4. clarity: x/5,
+        5. keywords: x/10,
+        6. practicality: x/5,
+        7. depth (number of words as compared to wc): x/20
+        SCORING: Give score out of 100 (not 10)
+        - Calculate based on 7 factors (total 100 points)
+        - Then DIVIDE by 10 for final 0-10 score
+        - Example: 84/100 = 8.5/10
+
+        STRICTLY: All scores must be between 0-10, same scale.
 
         JOB CONTEXT:
         - Role: ${currentInterview.title} ${currentInterview.type} 
@@ -97,13 +111,17 @@ const getQuestionWiseFeedback = async (currentInterview, batchQuestions, startIn
 
         IMPORTANT: If answer is "NO ANSWER PROVIDED", give score 0.
 
+        For EACH question, provide: NECESSARY if user deserves
+        1. specific strengths (what they did well)
+        2. improvement tips (what to work on)
+
         OUTPUT FORMAT STRICTLY (JSON only):
         {
             "questionWiseFeedback": [
                 {
                     "feedbackObj": {
-                        "score": 84,
-                        "summary": "Brief evaluation summary",
+                        "score": 8.4,
+                        "summary": "Brief evaluation summary in 2-3 lines",
                         "strength": ["strength1", "strength2"],
                         "improvementTips": ["tip1", "tip2"],
                         "idealAnswer": "What an ideal answer would include"

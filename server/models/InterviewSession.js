@@ -14,7 +14,7 @@ const questionSchema = new mongoose.Schema({
     transcript: { type: String },
 
     feedbackObj: {
-        score: { type: Number, min: 0, max: 100 },
+        score: { type: Number, min: 0, max: 10 },
         summary: String,
         strengths: [String],
         improvementTips: [String],
@@ -68,7 +68,7 @@ const interviewSessionSchema = new mongoose.Schema({
     overallFeedback: {
         score: { type: Number, min: 0, max: 100 }, 
         summary: String,
-        strength: [String],
+        strengths: [String],
         improvementTips: [String],
         recommendation: {
             type: String,

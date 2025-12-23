@@ -1,7 +1,8 @@
 const InterviewSession = require('../models/InterviewSession');
 const { generateAIQuestions } = require('../utils/generateQuestions');
 const { AssemblyAI } = require('assemblyai');
-const { getOverallFeedback, getQuestionWiseFeedback, evaluateQuestions } = require('../utils/getFeedback')
+const { getOverallFeedback, getQuestionWiseFeedback, evaluateQuestions } = require('../utils/getFeedback');
+const { calculateOverallScore, finalOverallScore } = require('../utils/calculateOverallScore');
 
 
 
@@ -208,9 +209,11 @@ const getTranscript = async (req, res) => {
         console.log("1. File received: ", req.file);
         console.log("2. API Key: ", process.env.ASSEMBLYAI_API_KEY);
 
-        // 1 - first get cloudinary url
+        // 1 - first get cloudinary url and questionIndex
         const audioUrl = req.body.audioUrl; // Cloudinary URL 
         console.log('3. Audio URL: ', audioUrl);
+        const questionIndex = req.body.questionIndex;   // frontend se aa rha hai, thunk bhej rha hai 
+
 
         // 2 - Transcribe 
         const transcript = await client.transcripts.transcribe({
@@ -222,10 +225,10 @@ const getTranscript = async (req, res) => {
 
         // 3 - Save to database 
         const interview = await InterviewSession.findById(req.params.interviewId);
-        const questionIndex = interview.currentQuestionIndex;
-
+        
         interview.questions[questionIndex].audioUrl = audioUrl;
         interview.questions[questionIndex].transcript = transcript.text;
+        interview.questions[questionIndex].answerText = transcript.text;
 
         await interview.save();
 
@@ -302,7 +305,13 @@ const evaluateInterview = async (req, res) => {
 
         // Check if this interview is already evaluated
         if (interview.feedbackGeneratedAt) {
-            return res.status(400).json({ error: 'Interview already evaluated' });
+            interview.status = 'evaluated';
+            await interview.save();
+            return res.status(400).json({ 
+                success: true,
+                message: 'Feedback already generated',
+                feedback: interview.overallFeedback
+            });
         }
 
         // Check if interview is completed 
@@ -330,13 +339,21 @@ const evaluateInterview = async (req, res) => {
             };
         });
 
+        // calculated the avg of all questions and converted it into percentages
+        const avgScore = calculateOverallScore(interview);
+        console.log("AVG Score: ", avgScore);
+
         // ab overfeedback generate karne kaa call karte hai 
         console.log("Generating overall feedback...");
         const overallFeedback = await getOverallFeedback(interview);
+        console.log("AI Overall Score: ", overallFeedback.score);
+
+        const finalOverallScore = finalOverallScore(avgScore, overallFeedback.score);
+        console.log("Final Overall Score: ", finalOverallScore);
 
         // now update the interview with this overall feedback
         interview.overallFeedback = {
-            score: overallFeedback.score,
+            score: finalOverallScore,
             summary: overallFeedback.summary,
             strengths: overallFeedback.strengths,
             improvementTips: overallFeedback.improvementTips, 
