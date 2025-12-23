@@ -106,6 +106,7 @@ const ActualInterviewScreen = ({ stream }) => {
         // timer restore karna padega localStorage se 
         const savedTime = localStorage.getItem('time_left');
         const initialTime = savedTime ? parseInt(savedTime) : interviewDuration;
+        console.log('Initial time: ', {savedTime, interviewDuration, initialTime});
         setTimeLeft(initialTime);
 
         const timer = setInterval(() => {
@@ -337,7 +338,7 @@ const ActualInterviewScreen = ({ stream }) => {
             await dispatch(evaluateInverview(interviewId)).unwrap();
 
             if (document.exitFullscreen) {
-                document.exitFullscreen
+                document.exitFullscreen();
             }
 
             // aur dusre page pr navigate kr do (feedback page)

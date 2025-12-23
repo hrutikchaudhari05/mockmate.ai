@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle, XCircle, Star, TrendingUp } from 'lucide-react';
+import { CheckCircle2, XCircle, TrendingUp, MessageSquareText, Sparkle, AlertCircle, ChevronRight, Dot, Minus} from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -9,22 +9,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchInterviewById } from '@/store/interviewSlice';
-
-
-// Mock data
-const questionFeedback = [
-    { question: "What is prop drilling?", score: 90, feedback: "Excellent explanation with examples" },
-    { question: "React.memo vs useMemo?", score: 75, feedback: "Good but missed performance implications" },
-    { question: "useRef vs useReducer?", score: 65, feedback: "Basic understanding, needs more depth" }
-];
-
-const improvements = [
-    "Explain concepts with real-world examples",
-    "Practice more on React performance optimization", 
-    "Work on communication clarity",
-    "Improve time management during answers"
-];
-
+import getRecommendationColor from '@/utils/getRecommendationColor';
 
 
 const Feedback = () => {
@@ -62,6 +47,8 @@ const Feedback = () => {
         )
     }
 
+    
+
     return (
         
         <motion.div
@@ -89,9 +76,9 @@ const Feedback = () => {
                         
                         {/* Overall Score Card */}
                         <Card className="bg-slate-900 border-slate-800 mb-8 mx-48">
-                            <CardHeader>
+                            <CardHeader className="items-center">
                                 <CardTitle className="flex text-2xl items-center gap-2 text-slate-300">
-                                    <TrendingUp size={24} className="text-indigo-600" />
+                                    <TrendingUp size={24} className="text-indigo-600 mt-[3px]" />
                                     Overall Performance Score
                                 </CardTitle>
                             </CardHeader>
@@ -100,68 +87,184 @@ const Feedback = () => {
                                     <div className="text-3xl font-bold text-white">
                                         {score}%
                                     </div>
-                                    <div className="text-slate-400">
-                                        {/* Score description */}
-                                        {score >= 80 ? 'Excellent!' : 
-                                        score >= 60 ? 'Good' : 'Needs Improvement'}
+                                    <div className={`font-medium text-xl capitalize ${getRecommendationColor(score)}`}>
+                                        {/* Recommendation */}
+                                        {currentInterview.overallFeedback.recommendation}
                                     </div>
                                 </div>
-                                <Progress value={score} className="h-2" />
+                                <Progress value={score} className="h-2 [&>div]:bg-indigo-600" />
                             </CardContent>
                         </Card>
 
+                        {/* Summary */}
+                        <Card className="bg-slate-900 border-slate-800 mb-8 mx-24 ">
+                            <CardHeader className="items-center">
+                                <CardTitle className="flex text-2xl items-center gap-2 text-slate-300">
+                                    <MessageSquareText size={24} className="text-indigo-600 items-center mt-[3px]" />
+                                    Feedback
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                                <p className='text-slate-400'>
+                                    {currentInterview.overallFeedback.summary}
+                                </p>
+                            </CardContent>
+                        </Card>
+
+                        <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 bg-slate-900 mx-6 mb-8 p-4 rounded-md border border-slate-800'>
+                            {/* Areas of Improvement */}
+                            <Card className=" bg-slate-900 border-slate-800">
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2 text-slate-300 text-xl">
+                                        <XCircle className="text-red-500/90 mt-[1px]" />
+                                        Areas for Improvement
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <ul className="space-y-3">
+                                        {currentInterview.overallFeedback.improvementTips.length === 0 ? (
+                                            <li className='text-slate-400 italic'>
+                                                No improvement needed
+                                            </li>
+                                        ) : (
+                                            currentInterview.overallFeedback.improvementTips.map((item, index) => (
+                                                <li key={index} className="flex items-start gap-3">
+                                                    <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
+                                                    <span className="text-slate-300">{item}</span>
+                                                </li>
+                                            ))
+                                        )}
+                                    </ul>
+                                </CardContent>
+                            </Card>
+
+                            {/* Areas of Strengths */}
+                            <Card className=" bg-slate-900 border-slate-800">
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2 text-slate-300 text-xl">
+                                        <CheckCircle2 className="text-emerald-500 mt-[1px]" />
+                                        Your Strengths
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <ul className="space-y-3">
+                                        {currentInterview.overallFeedback.strength.length === 0 ? (
+                                            <li className='text-slate-400 italic'>
+                                                No strengths are seen
+                                            </li>
+                                        ) : (
+                                            currentInterview.overallFeedback.strength.map((item, index) => (
+                                                <li key={index} className="flex items-start gap-3">
+                                                    <div className="w-2 h-2 bg-emerald-500 rounded-full mt-2"></div>
+                                                    <span className="text-slate-300">{item}</span>
+                                                </li>
+                                            ))
+                                        )}
+                                    </ul>
+                                </CardContent>
+                            </Card>
+                        </div>
+
                         {/* Question-wise Analysis */}
-                        <Card className="bg-slate-900 border-slate-800 mb-8">
+                        <Card className="bg-slate-900 border-slate-800 mb-8 mx-6">
                             <CardHeader>
-                                <CardTitle>Question-wise Analysis</CardTitle>
+                                <CardTitle className="text-center text-3xl font-medium text-indigo-600 mb-2">Question-wise Analysis</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-6">
-                                {questionFeedback.map((item, index) => (
-                                    <div key={index} className="border-b border-slate-800 pb-4 last:border-0">
+                                {currentInterview.questions.map((q, index) => (
+                                    <div key={index} className="flex flex-col gap-2 border-b border-slate-800 pb-4 last:border-0">
+                                        
+                                        {/* Question-Text */}
                                         <div className="flex justify-between items-start mb-2">
-                                            <h3 className="font-medium text-white">
-                                                Q{index + 1}: {item.question}
+                                            <h3 className="font-medium text-white text-xl">
+                                                Q{index + 1}: {q.questionObj.qtxt}
                                             </h3>
                                             <Badge 
-                                                className={item.score >= 80 ? 'bg-green-500' : 
-                                                        item.score >= 60 ? 'bg-yellow-500' : 'bg-red-500'}
+                                                className={`px-2 text-sm font-semibold text-center text-slate-200
+                                                    ${q.feedbackObj.score >= 8 ? 'bg-emerald-500' : 
+                                                        q.feedbackObj.score >= 6 ? 'bg-amber-500/90' : 'bg-red-500/90'}`}
                                             >
-                                                {item.score}%
+                                                {q.feedbackObj.score}
                                             </Badge>
                                         </div>
-                                        <p className="text-slate-400 text-sm">{item.feedback}</p>
+
+                                        {/* Summary */}
+                                        <p className="flex items-start gap-2 text-slate-400 text-sm">
+                                            <MessageSquareText size={16} className='text-indigo-600 mt-[3px] shrink-0'/>
+                                            <span>
+                                                <span className='text-slate-200 font-medium'>Summary: </span> 
+                                                {q.feedbackObj.summary}
+                                            </span>
+                                        </p>
+
+                                        {/* Ideal Answer */}
+                                        <p className="flex items-start gap-2 text-slate-400 text-sm">
+                                            <Sparkle size={16} className='text-fuchsia-400 mt-[3px] shrink-0' />
+                                            <span>
+                                                <span className='text-slate-200 font-medium'>Ideal Answer: </span> 
+                                                {q.feedbackObj.idealAnswer}
+                                            </span>
+                                        </p>
+
+                                        {/* Strengths */}
+                                        <div className='flex items-start gap-2 text-slate-400 text-sm'>
+                                            <CheckCircle2 size={16} className='text-emerald-500 mt-[2px] shrink-0' />
+                                            <div>
+                                                <span className='text-slate-200 font-medium'>
+                                                    Your Strengths: 
+                                                </span>
+                                                {q.feedbackObj.strengths.length === 0 ? (
+                                                    <span className='ml-1 italic'>
+                                                        None highlighted
+                                                    </span>
+                                                ) : (
+                                                    <ul>
+                                                        {q.feedbackObj.strengths.map((strength, i) => (
+                                                            <li key={i} className='flex items-start gap-1 pl-6'>
+                                                                <Dot size={20} className='mt-0.5 text-emerald-400 shrink-0' />
+                                                                <span>{strength}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Improvement Tips */}
+                                        <div className="flex items-start gap-2 text-slate-400 text-sm">
+                                            <AlertCircle size={16} className='text-amber-400 mt-[2px] shrink-0' />
+                                            <div>
+                                                <span className='text-slate-200 font-medium'>
+                                                    Improvement Tips: 
+                                                </span>
+                                                {q.feedbackObj.improvementTips.length === 0 ? (
+                                                    <span className='ml-1 italic'>None highlighted</span>
+                                                ) : (
+                                                    <ul>
+                                                        {q.feedbackObj.improvementTips.map((tip, i) => (
+                                                            <li key={i} className='flex items-start gap-1 pl-6'>
+                                                                <Dot size={20} className='mt-0.5 text-amber-400/80 shrink-0' />
+                                                                <span>{tip}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
                                 ))}
                             </CardContent>
                         </Card>
 
-                        {/* Areas of Improvement */}
-                        <Card className="bg-slate-900 border-slate-800 mb-8">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <XCircle className="text-red-500" />
-                                    Areas for Improvement
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <ul className="space-y-3">
-                                    {improvements.map((item, index) => (
-                                        <li key={index} className="flex items-start gap-3">
-                                            <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
-                                            <span className="text-slate-300">{item}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </CardContent>
-                        </Card>
+                        
 
                         {/* Action Buttons */}
                         <div className="flex gap-4 justify-center">
-                            <Button className="bg-indigo-600 hover:bg-indigo-700">
+                            <Button className="bg-indigo-600 hover:bg-indigo-800 text-slate-200">
                                 Download Detailed Report
                             </Button>
                             
-                            <Button variant="outline" className="border-slate-700"
+                            <Button className="border-slate-700 text-indigo-600 bg-slate-900 font-bold hover:bg-slate-950 hover:border hover:border-indigo-700"
                             onClick={() => navigate("/dashboard")}>
                                 Back to Dashboard
                             </Button>
