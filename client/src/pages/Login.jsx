@@ -10,12 +10,15 @@ import { Input } from '@/components/ui/input';
 // redux imports 
 import {useSelector, useDispatch} from 'react-redux';
 import { loginUser } from '@/store/authSlice';      // Thunk import kiya
+import { validateLoginData } from '@/utils/dataValidation';
 
 const Login = () => {
     // useNavigate is used to navigate to different pages
     const navigate = useNavigate();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [clickedSubmit, setClickedSubmit] = useState(false);
+    const [errorsObj, setErrorsObj] = useState(null);
 
     // using redux hook
     const dispatch = useDispatch();
@@ -23,6 +26,17 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // data validation se errors extract kr lo 
+        const errors = validateLoginData({email, password});
+        setErrorsObj(errors);
+
+        // pehle flag ko true karte hai to show errors 
+        setClickedSubmit(true);
+
+        // if errors are there then frontend data ko backend mt bhejo
+        if (Object.keys(errors).length > 0) return;
+
 
         // Redux Thunk dispatch kiya
         const result = await dispatch(loginUser({email, password}));
@@ -32,6 +46,7 @@ const Login = () => {
             // at this stage, redux ne already data store kr liya and token bhi localStorage me save kr liya
 
             console.log('Login.jsx -> Login successful via Redux');
+            setClickedSubmit(false);
             navigate('/dashboard');
         }
         // agar fail hua to error automatically Redux state me store ho gya 
@@ -56,7 +71,7 @@ const Login = () => {
                 </header>
 
                 {/* In case any error occurres, it will be displayed above form */}
-                {error && <p className="text-red-400 text-center mb-4">{error}</p>}
+                {error && <p className="text-red-400 text-center text-sm mb-4">{error}</p>}
 
                 {/* form */}
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -67,9 +82,14 @@ const Login = () => {
                             placeholder="Enter Email Address..."
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="pl-12 text-black" 
+                            className={`pl-12 text-white bg-slate-950 
+                                ${clickedSubmit && errorsObj?.email ? 'border-red-400' : 'border-slate-800'}
+                                focus:border-slate-800
+                                focus-visible:ring-1 focus-visible:ring-indigo-500 focus-visible:ring-offset-0
+                            `} 
                         />
                     </div>
+                    {clickedSubmit && errorsObj.email && <p className='text-red-400 text-sm text-center mt-1'>{errorsObj.email}</p>}
                     <div className="relative">
                         <Lock size={18} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-500 z-10" />
                         <Input
@@ -77,9 +97,15 @@ const Login = () => {
                             placeholder="Enter Your Password..."
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="pl-12 text-black"
+                            className={`pl-12 text-white bg-slate-950 
+                                ${clickedSubmit && errorsObj?.password ? 'border-red-400' : 'border-slate-800'}
+                                focus:border-slate-800
+                                focus-visible:ring-1 focus-visible:ring-indigo-500 focus-visible:ring-offset-0
+                            `}
                         />
                     </div>
+                    {clickedSubmit && errorsObj.password && <p className='text-red-400 text-center text-sm mt-1'>{errorsObj.password}</p>}
+
                     
                     <motion.div
                         whileHover={{ scale: 1.02 }}
@@ -90,8 +116,8 @@ const Login = () => {
                             type="submit"
                             disabled={isLoading}
                             size="lg"
-                            className="w-full py-3 font-bold shadow-lg shadow-indigo-700/50 hover:text-indigo-500 "
-                            onClick={() => navigate('/dashboard')}
+                            className="w-full py-3 font-bold shadow-lg shadow-indigo-700/50 hover:text-indigo-600 bg-slate-950 hover:bg-slate-950 "
+                            // onClick={() => navigate('/dashboard')}
                         >
                             {isLoading ? (
                                 <motion.div>
