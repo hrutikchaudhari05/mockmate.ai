@@ -28,17 +28,16 @@ const Landing = () => {
                 <div className="flex gap-4 justify-center">
                     <Button 
                         size="lg"
-                        className="bg-indigo-600 hover:bg-indigo-700"
+                        className="bg-indigo-600 hover:bg-indigo-800 text-slate-200"
                         onClick={() => navigate('/login')}
                     >
                         Get Started
                     </Button>
                     <Button 
+                        className="border-slate-700 text-indigo-600 bg-slate-900 font-bold hover:bg-slate-950 hover:border hover:border-indigo-700"
                         size="lg"
-                        variant="outline"
-                        className="border-slate-600"
                     >
-                        Learn More
+                            Learn More
                     </Button>
                 </div>
                 
