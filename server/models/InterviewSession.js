@@ -72,7 +72,7 @@ const interviewSessionSchema = new mongoose.Schema({
         improvementTips: [String],
         recommendation: {
             type: String,
-            enum: ['strong fit', 'considerable fit', 'underperformed', 'not recommended']
+            enum: ['strong fit', 'considerable fit', 'needs improvement', 'not recommended']
         }
     },
 

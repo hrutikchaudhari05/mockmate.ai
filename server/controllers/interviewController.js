@@ -348,12 +348,12 @@ const evaluateInterview = async (req, res) => {
         const overallFeedback = await getOverallFeedback(interview);
         console.log("AI Overall Score: ", overallFeedback.score);
 
-        const finalOverallScore = finalOverallScore(avgScore, overallFeedback.score);
+        const overallScore = finalOverallScore(avgScore, overallFeedback.score);
         console.log("Final Overall Score: ", finalOverallScore);
 
         // now update the interview with this overall feedback
         interview.overallFeedback = {
-            score: finalOverallScore,
+            score: overallScore,
             summary: overallFeedback.summary,
             strengths: overallFeedback.strengths,
             improvementTips: overallFeedback.improvementTips, 
