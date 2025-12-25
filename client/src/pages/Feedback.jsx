@@ -148,12 +148,12 @@ const Feedback = () => {
                                 </CardHeader>
                                 <CardContent>
                                     <ul className="space-y-3">
-                                        {currentInterview.overallFeedback.strength.length === 0 ? (
+                                        {currentInterview.overallFeedback.strengths.length === 0 ? (
                                             <li className='text-slate-400 italic'>
-                                                No strengths are seen
+                                                No strengths are shown
                                             </li>
                                         ) : (
-                                            currentInterview.overallFeedback.strength.map((item, index) => (
+                                            currentInterview.overallFeedback.strengths.map((item, index) => (
                                                 <li key={index} className="flex items-start gap-3">
                                                     <div className="w-2 h-2 bg-emerald-500 rounded-full mt-2"></div>
                                                     <span className="text-slate-300">{item}</span>

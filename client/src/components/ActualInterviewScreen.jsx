@@ -13,14 +13,14 @@ const ActualInterviewScreen = ({ stream }) => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
-    // // ALL Redux data needed
+    const {interviewId} = useParams();
+
+    // ALL Redux data needed
     const { currentInterview } = useSelector((state) => state.interview);
     const { user } = useSelector(state => state.auth);
     const userId = user?._id;
     const interviewDuration = currentInterview?.duration;
     const currQueIndex = currentInterview?.currentQuestionIndex;
-    const interviewQuestions = currentInterview?.questions;
-    const currentQuestion = currentInterview?.questions[currentInterview?.currentQuestionIndex];
     
 
     // Refs 
@@ -28,6 +28,8 @@ const ActualInterviewScreen = ({ stream }) => {
     const chunksRef = useRef([]);   // ye raw audio bytes store karega 
     const recordTimerIdRef = useRef(null);    // timer kaa id store karta hai
     const latestBlobRef = useRef(null);
+    const globalTimerRef = useRef(null);
+    const prevInterviewIdRef = useRef(interviewId);
 
     // all the local states 
     const [attempts, setAttempts] = useState(0);
@@ -39,12 +41,12 @@ const ActualInterviewScreen = ({ stream }) => {
     const [timeLeft, setTimeLeft] = useState(interviewDuration);     // global timer 
     // const [audioBlob, setAudioBlob] = useState(null);   // audio file save karne ke liye
      
-    const {interviewId} = useParams();
-    console.log("Interview ID being sent: ", interviewId);
-
+    
     // ActualInterviewScreen.jsx me add:
     useEffect(() => {
         if (!currentInterview && interviewId) {
+            console.log("Interview ID being sent: ", interviewId);
+            console.log("Interview Duration from Redux:", interviewDuration, "Type:", typeof interviewDuration);
             dispatch(fetchInterviewById(interviewId));
         }
     }, [currentInterview, interviewId, dispatch]);
@@ -64,7 +66,6 @@ const ActualInterviewScreen = ({ stream }) => {
         console.log('Stream Prop: ', stream);
     }, [stream])
 
-    console.log("Interview Duration from Redux:", interviewDuration, "Type:", typeof interviewDuration);
 
     // agar user interview chhod kr dusre page pr gaya to bhi mic access active rahega, to uski wajah se following problems occur honge:
     // 1. battery drain karega 
@@ -103,35 +104,60 @@ const ActualInterviewScreen = ({ stream }) => {
 
     // sideEffect - timer countdown - auto submit interview when timer ends
     useEffect(() => {
+        if (!interviewDuration || currentInterview?.status === 'evaluated') return; // wait until duration is available
+
+        // ALWAYS start fresh for new interview
+        localStorage.removeItem('time_left');  // <-- ADD THIS
+
         // timer restore karna padega localStorage se 
         const savedTime = localStorage.getItem('time_left');
         const initialTime = savedTime ? parseInt(savedTime) : interviewDuration;
         console.log('Initial time: ', {savedTime, interviewDuration, initialTime});
+        
+        // Set initial time
         setTimeLeft(initialTime);
 
-        const timer = setInterval(() => {
+        globalTimerRef.current = setInterval(() => {
             setTimeLeft(prev => {
-                // ab hame time ko hrr second localStorage me save karna padega 
-                // uske liye hrr baar pehle naya time banana padega 
-                const newTime = prev <= 0 ? 0 : prev - 1;
-
+                // agar time is already 0, ab interval clear karte hai 
+                if (prev <= 0) {
+                    clearInterval(globalTimerRef.current); 
+                    localStorage.removeItem('time_left');
+                    // CAUTION: pehle maine handleEndInterview ya pr use kiya thaa, but wo render issues create kr rha thaa so maine uske liye alag useEffect use kiya 
+                    return 0;
+                }
+                // otherwise reduce time every second 
+                const newTime = prev - 1;
                 // ab newTime ko localStorage me save karenge 
                 localStorage.setItem('time_left', newTime);
-
-                if (newTime <= 0) {
-                    handleEndInterview();   // time over - interview end
-                    clearInterval(timer); 
-                }
                 return newTime;
             });
         }, 1000);
 
         // cleanup code - component unmount hone pr timer band kr do
         return () => {
-            clearInterval(timer);
-            localStorage.removeItem('time_left');
+            if (globalTimerRef.current) clearInterval(globalTimerRef.current);
         }
     }, [interviewDuration]);
+
+    useEffect(() => {
+        // Clean old timer when interview ID changes
+        if (prevInterviewIdRef.current !== interviewId) {
+            localStorage.removeItem('time_left');
+            prevInterviewIdRef.current = interviewId;
+        }
+    }, [interviewId]);
+
+
+    // Ab handleEndInterview ke liye alag useEffect 
+    useEffect(() => {
+        if (interviewDuration && timeLeft === 0) {
+            console.log('Timer expired!');
+            handleEndInterview();
+        }
+    }, [timeLeft]) 
+
+
 
     // back button disable
     // useEffect(() => {
@@ -327,6 +353,21 @@ const ActualInterviewScreen = ({ stream }) => {
 
     // 5 - End Interview 
     const handleEndInterview = async () => {
+
+        // stop timer first 
+        if (globalTimerRef.current) {
+            clearInterval(globalTimerRef.current);
+            globalTimerRef.current = null;
+        }
+
+        localStorage.removeItem('time_left');
+
+        if (currentInterview?.status === 'evaluated') {
+            // Already evaluated, just go to feedback
+            navigate(`/feedback/${interviewId}`);
+            return;
+        }
+
         // pehle localStorage me interview_active false karna padega 
         localStorage.setItem('interview_active', 'false');
         // final submission send karo, confirmation modal send karo
@@ -353,7 +394,6 @@ const ActualInterviewScreen = ({ stream }) => {
         
         // Back button normal karo
         // window.onpopstate = null;
-
         
     }    
 
