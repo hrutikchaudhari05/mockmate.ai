@@ -26,7 +26,9 @@ export const loginUser = createAsyncThunk(
 
         } catch (error) {
             console.log('API Error:', error.response?.data);
-            return rejectWithValue(error.response?.data?.message || 'Network Error!');
+            return rejectWithValue(
+                error.response?.data || { message: 'Network Error!' }
+            );
         }
     }
 );

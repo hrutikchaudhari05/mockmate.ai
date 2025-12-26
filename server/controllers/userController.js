@@ -63,6 +63,7 @@ const loginUser = async (req, res) => {
 
         if(!existingUser) {
             res.status(400).send({
+                field: "email",
                 message: "Invalid Email! Please Enter registered email!"
             });
         }
@@ -78,6 +79,7 @@ const loginUser = async (req, res) => {
         // if password does not match -> then return an error message
         if(!isPasswordMatch) {
             return res.status(400).send({
+                field: "password",
                 message: "Invalid Password! Please Enter valid password!"
             });
         }

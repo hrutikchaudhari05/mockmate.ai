@@ -27,6 +27,8 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        console.log("Error from backend: ", error);
+
         // data validation se errors extract kr lo 
         const errors = validateLoginData({email, password});
         setErrorsObj(errors);
@@ -71,7 +73,7 @@ const Login = () => {
                 </header>
 
                 {/* In case any error occurres, it will be displayed above form */}
-                {error && <p className="text-red-400 text-center text-sm mb-4">{error}</p>}
+                {error?.message && <p className="text-red-400 text-center text-sm mb-4">{error?.message}</p>}
 
                 {/* form */}
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -83,7 +85,7 @@ const Login = () => {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             className={`pl-12 text-white bg-slate-950 
-                                ${clickedSubmit && errorsObj?.email ? 'border-red-400' : 'border-slate-800'}
+                                ${clickedSubmit && ( errorsObj?.email || error?.field === 'email' ) ? 'border-red-400' : 'border-slate-800'}
                                 focus:border-slate-800
                                 focus-visible:ring-1 focus-visible:ring-indigo-500 focus-visible:ring-offset-0
                             `} 
