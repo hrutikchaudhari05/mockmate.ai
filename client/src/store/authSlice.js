@@ -47,7 +47,9 @@ export const registerUser = createAsyncThunk(
             return response.data;   // data redux me store karenge
 
         } catch (error) {
-            return rejectWithValue(error.response?.data?.message || "Registration Failed!");
+            return rejectWithValue(
+                error.response?.data || { message: "Registration Failed!" }
+            );
         }
     }
 );

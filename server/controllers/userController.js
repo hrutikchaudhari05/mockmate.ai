@@ -13,7 +13,10 @@ const registerUser = async (req, res) => {
         // check if that user is already present in the database or not (check for email as it is unique)
         const userExists = await User.findOne({email});
         if(userExists) {
-            return res.status(400).send({message: 'User already exists with this email...'});
+            return res.status(400).send({
+                field: 'email',
+                message: 'User already exists with this email...'
+            });
         } 
 
         // complete following steps as the user does not exist with current email

@@ -10,6 +10,7 @@ import {Input} from '@/components/ui/input';
 // redux methods and thunk import kiya 
 import { useSelector, useDispatch } from 'react-redux';
 import { registerUser } from '@/store/authSlice';
+import { validateRegisterData } from '@/utils/dataValidation';
 
 const Register = () => {
     const navigate = useNavigate();
@@ -19,6 +20,8 @@ const Register = () => {
         email: '',
         password: ''
     });
+    const [clickedSubmit, setClickedSubmit] = useState(false);
+    const [errorsObj, setErrorsObj] = useState(null);
 
     // Redux state 
     const {isLoading, error} = useSelector(state => state.auth);
@@ -32,6 +35,16 @@ const Register = () => {
     // handleSubmit
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // pehle clickedSubmit ko true karte hai,
+        setClickedSubmit(true);
+
+        // ab errors ko lena padega validation se 
+        const errors = validateRegisterData(formData);
+        setErrorsObj(errors);
+
+        // ab check karte hai errors hai yaa nhi,
+        if (Object.keys(errors).length > 0) return;
 
         // Redux thunk dispatch kiya 
         const result = await dispatch(registerUser(formData));
@@ -53,7 +66,7 @@ const Register = () => {
                 </header>
 
                 {/* in case of any error */}
-                {error && <p className='text-red-400 text-center mb-4'>{error}</p>}
+                {error && <p className='text-red-400 text-center mb-4'>{error?.message}</p>}
 
                 <form onSubmit={handleSubmit} className='space-y-6'>
                     <motion.div className='relative'>
@@ -63,10 +76,18 @@ const Register = () => {
                             placeholder="Enter You Name..."
                             value={formData.name}
                             onChange={handleChange}
-                            className="pl-12 text-black"
                             name="name"
+                            className={`pl-12 text-white bg-slate-950
+                                ${clickedSubmit && ( errorsObj?.name || error?.field === 'name' ) ? 'border-red-400' : 'border-slate-800'}
+                                focus:border-slate-800 
+                                focus-visible:ring-1 focus-visible:border-indigo-500 focus-visible:ring-offset-0
+                            `}
+                            
                         />
                     </motion.div>
+
+                    {clickedSubmit && errorsObj?.name && <p className='text-red-400 text-sm text-center mt-1'>{errorsObj.name}</p>}
+
                     <motion.div className='relative'>
                         <Mail size={18} className='absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-500 z-10'/>
                         <Input 
@@ -74,10 +95,17 @@ const Register = () => {
                             placeholder="Enter You Email..."
                             value={formData.email}
                             onChange={handleChange}
-                            className="pl-12 text-black"
                             name="email"
+                            className={`pl-12 text-white bg-slate-950 
+                                ${clickedSubmit && ( errorsObj?.email || error?.field === 'email' ) ? 'border-red-400' : 'border-slate-800'}
+                                focus:border-slate-800 
+                                focus-visible:ring-1 focus-visible:border-indigo-500 focus-visible:ring-offset-0
+                            `}
                         />
                     </motion.div>
+
+                    {clickedSubmit && errorsObj?.email && <p className='text-red-400 text-sm mt-1 text-center'>{errorsObj.email}</p>}
+
                     <motion.div className='relative'>
                         <Lock size={18} className='absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-500 z-10'/>
                         <Input 
@@ -85,10 +113,17 @@ const Register = () => {
                             placeholder="Enter You Password..."
                             value={formData.password}
                             onChange={handleChange}
-                            className="pl-12 text-black"
                             name="password"
+                            className={`pl-12 text-white bg-slate-950 
+                                ${clickedSubmit && ( errorsObj?.password || error?.password ) ? 'border-red-400' : 'border-slate-800'}
+                                focus:border-slate-800 
+                                focus-visible:ring-1 focus-visible:border-indigo-500 focus-visible:ring-offset-0
+                            `}
                         />
                     </motion.div>
+
+                    {clickedSubmit && errorsObj?.password && <p className='text-red-400 text-sm mt-1 text-center'>{errorsObj.password}</p>}
+
                     <motion.div
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
