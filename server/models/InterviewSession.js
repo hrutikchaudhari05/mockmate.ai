@@ -30,7 +30,12 @@ const interviewSessionSchema = new mongoose.Schema({
         required: true  // mandatory because logged-in user kaa hee interview setup ho sakta hai, to user ka unique id to lagega
     }, 
 
-    title: { type: String, required: true, trim: true },
+    title: { 
+        type: String, 
+        required: true, 
+        trim: true,
+        maxlength: 60
+    },
 
     type: {
         type: String, 
@@ -44,11 +49,11 @@ const interviewSessionSchema = new mongoose.Schema({
         required: true
     },
 
-    duration: { type: Number, required: true }, // seconds me store karenge
+    duration: { type: Number, required: true, min: 900, max: 3600 }, // seconds me store karenge
 
-    jobDescription: { type: String, trim: true },
-    targetCompanies: { type: String, trim: true },
-    interviewContext: { type: String, trim: true },
+    jobDescription: { type: String, trim: true, maxlength: 1000 },
+    targetCompanies: { type: String, trim: true, maxlength: 120 },
+    interviewContext: { type: String, trim: true, maxlength: 300 },
     resumeUrl: { type: String, trim: true },
 
     status: {
