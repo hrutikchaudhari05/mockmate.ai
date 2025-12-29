@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {motion} from 'framer-motion';
+import {motion, useAnimation} from 'framer-motion';
 
 // redux imports 
 import { useDispatch } from 'react-redux';
@@ -11,8 +11,16 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { validateSetup } from '@/utils/dataValidation';
+
+// lucide react 
+import { AlertCircle } from 'lucide-react';
+
+
 
 const Setup = ({onClose}) => {
+
+    // const controls = useAnimation();
 
     // first of all dispatch 
     const dispatch = useDispatch();
@@ -32,8 +40,15 @@ const Setup = ({onClose}) => {
         resume: null
     });
 
-    // data validation ke liye formValidation check karo 
-    const formIsValid = true;
+    // adding validation state 
+    const [validation, setValidation] = useState({
+        hasError: false,
+        emptyFields: {}, 
+        firstError: null
+    });
+
+    // animation ko baar baar chalane ke liye state kee need hai 
+    const [shakeTick, setShakeTick] = useState(0);
 
     // Background scroll disable karne ke liye
     React.useEffect(() => {
@@ -43,50 +58,98 @@ const Setup = ({onClose}) => {
         };
     }, []);
 
+    const LIMITS = {
+        title: 60,
+        jobDescription: 1000,
+        targetCompanies: 120,
+        interviewContext: 300
+    }
+
     // handleChange function for taking valus in Input and Textarea 
     const handleChange = (field, value) => {
+        if (LIMITS[field] && value.length > LIMITS[field]) return;
 
         setFormData(prev => ({
             ...prev,
             [field]: value
         }));
+
     };
     
     // handleStartInterview handler after setting up backend 
     const handleStartInterview = async (e) => {
         e.preventDefault();
+
+        // frontend validation 
+        const result = validateSetup(formData);
+        console.log('Validate Setup: ', result);
+
+        if (result.hasError) {
+            setValidation(result);
+            setShakeTick(prev => prev + 1);
+            return;
+        }
+
+        setValidation({ hasError: false, emptyFields: {}, firstError: null });
+
+        // yaha se api call logic will take over
         localStorage.setItem('interview_active', 'false');
 
-        if (formIsValid) {
+        // converting duration to seconds before sending 
+        const dataToSend = {
+            ...formData,
+            duration: Number(formData.duration) * 60
+        }
 
-            // converting duration to seconds before sending 
-            const dataToSend = {
-                ...formData,
-                duration: Number(formData.duration) * 60
-            }
+        // Direct dataToSend bheja (nested nhi)
+        const res = await dispatch(createInterview(dataToSend));
+        console.log('Dispatch Result: ', res);
 
-            // Direct dataToSend bheja (nested nhi)
-            const result = await dispatch(createInterview(dataToSend));
-            console.log('Dispatch Result: ', result);
+        if (createInterview.fulfilled.match(res)) {
+            const interviewId = res.payload.interview?.id;
+            console.log('Interview created, ID:', interviewId);
 
-            if (createInterview.fulfilled.match(result)) {
-                const interviewId = result.payload.interview?.id;
-                console.log('Interview created, ID:', interviewId);
-    
-                if (interviewId) {
-                    onClose();
-                    navigate(`/interview-room/${interviewId}`);
-                } else {
-                    console.error('Interview ID missing:', result.payload);
-                    onClose()
-                }
-            } else {
+            if (interviewId) {
                 onClose();
+                navigate(`/interview-room/${interviewId}`);
+            } else {
+                console.error('Interview ID missing:', res.payload);
+                onClose()
             }
-
-            
+        } else {
+            onClose();
         }
     }
+
+    
+
+    const shakeSoft = {
+        x: [0, -4, 4, -4, 4, 0],
+        transition: { duration: 0.3 }
+    };
+
+    const shakeHard = {
+        x: [0, -10, 10, -10, 10, 0],
+        transition: { duration: 0.45 }
+    };
+
+    const animationControls = (field) => {
+        if (!validation.hasError) return { x: 0 };
+
+        if (validation.firstError === field) {
+            return shakeHard;
+        } 
+
+        if (validation.emptyFields[field]) {
+            return shakeSoft;
+        }
+
+        return { x: 0 };
+
+    };
+
+
+
 
 
     
@@ -117,7 +180,7 @@ const Setup = ({onClose}) => {
 
                         <h2 className="text-3xl font-bold text-center text-white">Customize Your Interview Options</h2>
 
-                        <p className='text-center text-slate-500 text-lg mt-2'>Setup your interview according to your requirements</p>
+                        {validation.hasError ? <p className='text-red-400 text-center text-sm mb-4 mt-2'>Please complete all required fields to continue.</p> : <p className='text-center text-slate-500 text-lg mt-2'>Setup your interview according to your requirements</p>}
 
                         <div className='border border-slate-800 rounded-md mt-2 mb-3'></div>
 
@@ -125,23 +188,43 @@ const Setup = ({onClose}) => {
                         <form onSubmit={handleStartInterview} className="space-y-3 text-white mb-2">
                             
                             {/* Title Input Area */}
-                            <div className='border rounded-md border-slate-700 flex flex-row items-center cursor-pointer py-1'>
-                                <p className='text-lg flex items-center justify-center text-slate-400 w-1/2'>Job Title</p>
+                            <motion.div
+                                key={`title-${shakeTick}`}
+                                animate={animationControls('title')}
+                                className={`border rounded-md border-slate-700 flex flex-row items-center cursor-pointer py-1`}
+                            >
+                                <p className='text-lg flex flex-row items-center justify-center text-slate-400 w-1/2 gap-2'>
+                                    Job Title
+                                    {validation?.emptyFields?.title && (
+                                        <AlertCircle size={16} className='text-red-400' />
+                                    )}
+                                </p>
                                 <Input 
-                                    className="bg-transparent border-0 border-l rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 text-2xl text-center placeholder:text-slate-500 border-slate-500" 
+                                    className={`bg-transparent border-0 border-l rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 text-2xl text-center placeholder:text-slate-500 border-slate-500`} 
                                     placeholder="e.g. Software Developer II"
+                                    maxLength={60}
                                     value={formData.title}
                                     onChange={(e) => handleChange('title', e.target.value)}
                                 />
-                            </div>
+                            </motion.div>
                             
                             {/* Interview Type Dropdown menu */}
-                            <div className='border rounded-md border-slate-700 flex flex-row items-center cursor-pointer py-1'>
-                                <p className='text-lg flex items-center justify-center text-slate-400 w-1/2'>Interview Type</p>
+                            <motion.div
+                                key={`type-${shakeTick}`}
+                                animate={animationControls('type')}
+                                className='border rounded-md border-slate-700 flex flex-row items-center cursor-pointer py-1'
+                            >
+                                <p className='text-lg flex items-center justify-center text-slate-400 w-1/2 gap-2'>
+                                    Interview Type
+                                    {validation?.emptyFields?.type && (
+                                        <AlertCircle size={16} className='text-red-400' />
+                                    )}
+                                </p>
                                 
                                 <Select
                                     value={formData.type}
                                     onValueChange={(value) => handleChange('type', value)}
+                                    
                                 >
                                     <SelectTrigger className="bg-transparent border-0 border-l rounded-none border-slate-500 text-center justify-center focus:ring-0 focus:ring-offset-0 focus:outline-none ring-0 ring-offset-0 ouline-none w-full data-[placeholder]:text-slate-500">
                                         <SelectValue className='justify-center placeholder:text-slate-500 ' placeholder="Your Interview Type... e.g. Tech" />
@@ -176,15 +259,25 @@ const Setup = ({onClose}) => {
                                         >Managerial</SelectItem>
                                     </SelectContent>
                                 </Select>
-                            </div>
+                            </motion.div>
 
                             {/* Experience Level Dropdown menu */}
-                            <div className='border rounded-md border-slate-700 flex flex-row items-center cursor-pointer py-1'>
-                                <p className='text-lg flex items-center justify-center text-slate-400 w-1/2'>Difficulty Level</p>
+                            <motion.div 
+                                key={`experience-${shakeTick}`}
+                                animate={animationControls('experience')}
+                                className='border rounded-md border-slate-700 flex flex-row items-center cursor-pointer py-1'
+                            >
+                                <p className='text-lg flex items-center justify-center text-slate-400 w-1/2 gap-2'>
+                                    Experience Level
+                                    {validation?.emptyFields?.experience && (
+                                        <AlertCircle size={16} className='text-red-400' />
+                                    )}
+                                </p>
                                 
                                 <Select
                                     value={formData.experience}
                                     onValueChange={(value) => handleChange('experience', value)}
+                                    
                                 >
                                     <SelectTrigger className="bg-transparent border-0 border-l rounded-none border-slate-500 text-center justify-center focus:ring-0 focus:ring-offset-0 focus:outline-none ring-0 ring-offset-0 ouline-none w-full data-[placeholder]:text-slate-500">
                                         <SelectValue className='justify-center ' placeholder="Experience Level... e.g. 3-5 years (Associate)" />
@@ -237,15 +330,25 @@ const Setup = ({onClose}) => {
                                         >Senior</SelectItem>
                                     </SelectContent>
                                 </Select>
-                            </div>
+                            </motion.div>
 
                             {/* Duration Dropdown menu */}
-                            <div className='border rounded-md border-slate-700 flex flex-row items-center cursor-pointer py-1'>
-                                <p className='text-lg flex items-center justify-center text-slate-400 w-1/2'>Duration</p>
+                            <motion.div 
+                                key={`duration-${shakeTick}`}
+                                animate={animationControls('duration')}
+                                className='border rounded-md border-slate-700 flex flex-row items-center cursor-pointer py-1'
+                            >
+                                <p className='text-lg flex items-center justify-center text-slate-400 w-1/2 gap-2'>
+                                    Duration
+                                    {validation?.emptyFields?.duration && (
+                                        <AlertCircle size={16} className='text-red-400' />
+                                    )}
+                                </p>
                                 
                                 <Select
                                     value={formData.duration ? formData.duration.toString() : ""}
                                     onValueChange={(value) => handleChange('duration', Number(value))}
+                                    
                                 >
                                     <SelectTrigger className="bg-transparent border-0 border-l rounded-none border-slate-500 text-center justify-center focus:ring-0 focus:ring-offset-0 focus:outline-none ring-0 ring-offset-0 ouline-none w-full data-[placeholder]:text-slate-500">
                                         <SelectValue className='justify-center ' placeholder="Interview Duration... e.g. 60 mins (Full Simulation)" />
@@ -290,11 +393,20 @@ const Setup = ({onClose}) => {
                                         
                                     </SelectContent>
                                 </Select>
-                            </div>
+                            </motion.div>
 
                             {/* JD/Skills Textarea */}
-                            <div className='border rounded-md border-slate-700 flex flex-row items-center cursor-pointer py-1'>
-                                <p className='text-lg flex items-center justify-center text-slate-400 w-1/2'>Job Description / Skills</p>
+                            <motion.div 
+                                key={`jobDescription-${shakeTick}`}
+                                animate={animationControls('jobDescription')}
+                                className='border relative w-full rounded-md border-slate-700 flex flex-row items-center cursor-pointer py-1'
+                            >
+                                <p className='text-lg flex items-center justify-center text-slate-400 w-1/2 gap-2'>
+                                    Job Description / Skills
+                                    {validation?.emptyFields?.jobDescription && (
+                                        <AlertCircle size={16} className='text-red-400' />
+                                    )}
+                                </p>
                                 
                                 <Textarea 
                                     placeholder="Paste job description OR key skills (React, Node.js, AWS...) here..."
@@ -309,37 +421,63 @@ const Setup = ({onClose}) => {
                                         maxHeight: '200px',
                                         overflowY: 'auto', 
                                     }}
+                                    maxLength={100}
                                     value={formData.jobDescription}
                                     onChange={(e) => handleChange('jobDescription', e.target.value)}
                                 />
+                                {formData.jobDescription.length > 850 && (
+                                    <span className="absolute bottom-1 right-2 text-xs text-slate-400">
+                                        {formData.jobDescription.length}/1000
+                                    </span>
+                                )}
                                 
-                            </div>
+                            </motion.div>
 
                             {/* Targeted Companies Input */}
-                            <div className='border rounded-md border-slate-700 flex flex-row items-center cursor-pointer py-1'>
-                                <p className='text-lg flex items-center justify-center text-slate-400 w-1/2'>Targeted Companies</p>
+                            <motion.div 
+                                key={`targetCompanies-${shakeTick}`}
+                                animate={animationControls('targetCompanies')}
+                                className='border rounded-md border-slate-700 flex flex-row items-center cursor-pointer py-1'
+                            >
+                                <p className='text-lg flex items-center justify-center text-slate-400 w-1/2 gap-2'>
+                                    Targeted Companies
+                                    {validation?.emptyFields?.targetCompanies && (
+                                        <AlertCircle size={16} className='text-red-400' />
+                                    )}
+                                </p>
                                 
                                 <Input 
                                     className="bg-transparent border-0 border-l rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 text-2xl text-center placeholder:text-slate-500 border-slate-500" 
                                     placeholder="e.g. Google, Microsoft, Perplexity..."
+                                    maxLength={120}
                                     value={formData.targetCompanies}
                                     onChange={(e) => handleChange('targetCompanies', e.target.value)}
                                 />
                                 
-                            </div>
+                            </motion.div>
 
                             {/* Interview Context Input */}
-                            <div className='border rounded-md border-slate-700 flex flex-row items-center cursor-pointer py-1'>
-                                <p className='text-lg flex items-center justify-center text-slate-400 w-1/2'>Interview Context</p>
+                            <motion.div 
+                                key={`interviewContext-${shakeTick}`}
+                                animate={animationControls('interviewContext')}
+                                className='border rounded-md border-slate-700 flex flex-row items-center cursor-pointer py-1'
+                            >
+                                <p className='text-lg flex items-center justify-center text-slate-400 w-1/2 gap-2'>
+                                    Interview Context
+                                    {validation?.emptyFields?.interviewContext && (
+                                        <AlertCircle size={16} className='text-red-400' />
+                                    )}
+                                </p>
                                 
                                 <Input 
                                     className="bg-transparent border-0 border-l rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 text-2xl text-center placeholder:text-slate-500 border-slate-500" 
                                     placeholder="e.g. ask only DSA questions, give ratings out of 10..."
+                                    maxLength={300}
                                     value={formData.interviewContext}
                                     onChange={(e) => handleChange('interviewContext', e.target.value)}
                                 />
                                 
-                            </div>
+                            </motion.div>
 
                             {/* Upload Resume File Section */}
                             <div className='border rounded-md border-slate-700 flex flex-row items-center cursor-pointer py-1'>

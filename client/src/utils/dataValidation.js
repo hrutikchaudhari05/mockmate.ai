@@ -48,8 +48,36 @@ export const validateLoginData = ({ email, password }) => {
         errors.password = "Password is required";
     }
 
-
-    
     return errors;
 };
 
+// setup form ke liye data validation function 
+export const validateSetup = (formData) => {
+
+    const requiredFields = [
+        'title',
+        'type',
+        'experience',
+        'duration',
+        'jobDescription',
+        'targetCompanies',
+        'interviewContext'
+    ];
+
+    const emptyFields = {};
+
+    requiredFields.forEach((field) => {
+        if (!formData[field] || !formData[field].toString().trim()) {
+            emptyFields[field] = true;
+        }
+    });
+
+    const firstErrorField = Object.keys(emptyFields)[0] || null;
+
+    return {
+        hasError: Object.keys(emptyFields).length > 0,
+        emptyFields,
+        firstError: firstErrorField
+    };
+    
+};
