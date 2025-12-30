@@ -5,6 +5,8 @@ const { getOverallFeedback, getQuestionWiseFeedback, evaluateQuestions } = requi
 const { calculateOverallScore, finalOverallScore } = require('../utils/calculateOverallScore');
 const calculateAvgScore = require('../utils/calculateAvgScore');
 const calculateAvgInterviewDuration = require('../utils/calculateAvgInterviewDuration');
+const { getInterviewDates, getUniqueSortedDates } = require('../utils/getInterviewDates');
+const calculateDailyStreak = require('../utils/calculateDailyStreak');
 
 
 
@@ -71,11 +73,17 @@ const getUserInterviews = async (req, res) => {
             ? calculateAvgInterviewDuration(allInterviews)
             : 0;
 
+        // calculate streak
+        const interviewDates = getInterviewDates(allInterviews);
+        const uniqueDates = getUniqueSortedDates(interviewDates);
+        const streak = calculateDailyStreak(uniqueDates);
+
         // now send response
         res.status(200).send({
             count: allInterviews.length,
             avgScore: avgScore,
             avgDuration: avgDuration,
+            streak: streak,
             allInterviews: allInterviews
         });
 

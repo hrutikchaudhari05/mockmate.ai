@@ -67,6 +67,7 @@ const Dashboard = () => {
     const totalInterviews = allInterviewsList?.count;
     const averageScore = allInterviewsList?.avgScore === '0.0' ? '0' : allInterviewsList?.avgScore;
     const averageDuration = allInterviewsList?.avgDuration === '0.0' ? '0' : allInterviewsList?.avgDuration;
+    const streak = allInterviewsList?.streak;
 
     return (
 
@@ -98,7 +99,7 @@ const Dashboard = () => {
                     <StatCard title="Interviews Completed" content={totalInterviews} icon={Award} color="text-indigo-600" />
                     <StatCard title="Average Score" content={averageScore} icon={Target} color="text-indigo-600" />
                     <StatCard title="Average Interview Duration" content={`${averageDuration} m`} icon={Clock} color="text-indigo-600" />
-                    <StatCard title="Current Streak" content="11D" icon={Flame} color="text-indigo-600" />
+                    <StatCard title="Current Streak" content={`${streak} D`} icon={Flame} color="text-indigo-600" />
                     
                 </div>
 
