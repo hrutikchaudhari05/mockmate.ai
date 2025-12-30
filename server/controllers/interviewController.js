@@ -4,6 +4,7 @@ const { AssemblyAI } = require('assemblyai');
 const { getOverallFeedback, getQuestionWiseFeedback, evaluateQuestions } = require('../utils/getFeedback');
 const { calculateOverallScore, finalOverallScore } = require('../utils/calculateOverallScore');
 const calculateAvgScore = require('../utils/calculateAvgScore');
+const calculateAvgInterviewDuration = require('../utils/calculateAvgInterviewDuration');
 
 
 
@@ -65,10 +66,16 @@ const getUserInterviews = async (req, res) => {
             ? calculateAvgScore(allInterviews)
             : 0;
 
+        // calculate average interview duration 
+        const avgDuration = allInterviews.length > 0
+            ? calculateAvgInterviewDuration(allInterviews)
+            : 0;
+
         // now send response
         res.status(200).send({
             count: allInterviews.length,
             avgScore: avgScore,
+            avgDuration: avgDuration,
             allInterviews: allInterviews
         });
 
