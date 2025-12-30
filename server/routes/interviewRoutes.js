@@ -13,7 +13,7 @@ router.use(authMiddleware);
 
 // create new interview 
 router.post('/create', createInterview);
-router.get('/user', getUserInterviews);
+router.get('/interviews', getUserInterviews);
 router.get('/:interviewId', getInterviewById);
 router.post('/:interviewId/generate-questions', generateQuestionsH);
 router.post('/:interviewId/begin', beginInterview);

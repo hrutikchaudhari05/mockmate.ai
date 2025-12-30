@@ -11,7 +11,7 @@ export const fetchAllInterviews = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             const response = await axios.get(
-                'http://localhost:5000/api/interviews/user',
+                'http://localhost:5000/api/interviews/interviews',
                 {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('token')}`

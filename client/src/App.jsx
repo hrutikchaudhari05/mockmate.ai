@@ -13,6 +13,7 @@ import Dashboard from './pages/Dashboard';
 import InterviewRoom from './pages/InterviewRoom';
 import Feedback from './pages/Feedback';
 import Landing from './pages/Landing';
+import Interviews from './pages/Interviews';
 import { autoLogin } from './store/authSlice';
 import LoadingScreen from './components/LoadingScreen';
 
@@ -89,16 +90,19 @@ function App() {
           </AuthenticatedRoute>
         } />
 
+        {/* Protected Route - user's all interview list */}
+        <Route path="/interviews" element={
+          <AuthenticatedRoute>
+            <Interviews />
+          </AuthenticatedRoute>
+        } />
+
         {/* Protected Route - InterviewRoom */}
         <Route path="/interview-room/:interviewId" element={
           <InterviewAuthWrapper>
             <InterviewRoom />
           </InterviewAuthWrapper>
         } />
-
-        
-
-        
 
         {/* Protected Route - Feedback */}
         <Route path="/feedback/:interviewId" element={

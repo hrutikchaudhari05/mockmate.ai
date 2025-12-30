@@ -1,6 +1,8 @@
 import React from 'react';
 
-import {Link} from 'react-router-dom';
+import {Link, NavLink, useLocation} from 'react-router-dom';
+
+import { motion } from 'framer-motion';
 
 // shadcn imports 
 import {
@@ -12,10 +14,16 @@ import {
 
 // Lucide-react imports 
 import { LogOut, Settings, User } from 'lucide-react';
+import { useSelector } from 'react-redux';
 
+// redux imports 
 
 // Ye hamara main layout hoga - har page pe same rahega
 const Layout = ({children}) => {
+
+    const location = useLocation();
+    const currentUser = useSelector(state => state.auth);
+    const username = currentUser?.user?.name;
 
     return (
         <div className="min-h-screen bg-slate-950">
@@ -41,26 +49,28 @@ const Layout = ({children}) => {
                         {/* Middle - Navigation  */}
                         <div className='flex items-center space-x-6'>
 
-                            {/* Home Link  */}
-                            <Link href="/dashboard" className='text-slate-300 hover:text-white transition-colors font-medium'
+                            {/* Dashboard Link  */}
+                            <Link 
+                                to="/dashboard" 
+                                className='text-slate-300 hover:text-white transition-colors font-medium'
                             >
-                                Home
+                                Dashboard
                             </Link>
 
-                            {/* Dashboard Link */}
+                            {/* Interviews Link */}
                             <Link 
-                                href="/dashboard" 
+                                to="/interviews" 
                                 className="text-slate-300 hover:text-white transition-colors font-medium"
-                                >
-                                    Dashboard
+                            >
+                                Interviews
                             </Link>
                             
-                            {/* About Link */}
+                            {/* Guide Link */}
                             <Link 
-                                href="/about" 
+                                to="/guide" 
                                 className="text-slate-300 hover:text-white transition-colors font-medium"
-                                >
-                                    About
+                            >
+                                Guide
                             </Link>
                         </div>
 
@@ -69,7 +79,7 @@ const Layout = ({children}) => {
 
                             {/* User's Name */}
                             <span className='text-slate-300 font-medium'>
-                                <u>Hrutik</u>
+                                <u>{username}</u>
                             </span>
 
                             {/* Shadcn Dropdown Integration */}
@@ -109,10 +119,20 @@ const Layout = ({children}) => {
                 </div>
             </nav>
 
-            {/* yaha page content aayega (dashboard, interviewSetup, feedback, etc*/}
-            <main className='pt-16'>   {/* pt-16 - padding top (space for navbar) */}
-                {children}
-            </main>
+            <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+            >
+                {/* yaha page content aayega (dashboard, interviewSetup, feedback, etc*/}
+                <main className='pt-16'>   {/* pt-16 - padding top (space for navbar) */}
+                    {children}
+                </main>
+
+            </motion.div>
+
+            
         </div>
     );
 };
