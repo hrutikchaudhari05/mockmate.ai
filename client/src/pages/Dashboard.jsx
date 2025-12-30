@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import {useState} from 'react'; // Setup popup ko dikhane ke liye
 
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
-import {Table, TableBody, TableCell, TableRow} from '@/components/ui/table'
+import {Table, TableBody, TableCell, TableRow, TableHead, TableHeader} from '@/components/ui/table'
 import {Award, Target, Clock, Flame, Play} from 'lucide-react';
 import {Button} from '@/components/ui/button'
 
@@ -15,6 +15,8 @@ import Setup from './Setup';
 // Framer Motion 
 import {motion, AnimatePresence} from 'framer-motion';
 import { fetchAllInterviews } from '@/store/interviewSlice';
+
+import { formatDate } from '@/utils/formatDate';
 
 // card forming function 
 const StatCard = ({ title, content, icon: Iconn, color}) => {
@@ -49,14 +51,21 @@ const Dashboard = () => {
     };
     
     useEffect(() => {
-        dispatch(fetchAllInterviews());
-    }, [dispatch])
+        if (user) {
+            dispatch(fetchAllInterviews());
+        }
+    }, [user.id]);
+
+    const allInterviewsList = useSelector(state => state.interview.allInterviews);
+    console.log("All Interviews: ", allInterviewsList);
 
     useEffect(() => {
         if (!user) navigate('/login');
     }, [user]);
 
-    
+    // essential values 
+    const totalInterviews = allInterviewsList?.count;
+    const averageScore = allInterviewsList?.avgScore === '0.0' ? '0' : allInterviewsList?.avgScore;
 
     return (
 
@@ -85,8 +94,8 @@ const Dashboard = () => {
                 <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
 
                     {/* First Card  */}
-                    <StatCard title="Interviews Completed" content="24" icon={Award} color="text-indigo-600" />
-                    <StatCard title="Average Score" content="84" icon={Target} color="text-indigo-600" />
+                    <StatCard title="Interviews Completed" content={totalInterviews} icon={Award} color="text-indigo-600" />
+                    <StatCard title="Average Score" content={averageScore} icon={Target} color="text-indigo-600" />
                     <StatCard title="Average Practice Time" content="36m" icon={Clock} color="text-indigo-600" />
                     <StatCard title="Current Streak" content="11D" icon={Flame} color="text-indigo-600" />
                     
@@ -109,37 +118,47 @@ const Dashboard = () => {
                             <CardTitle className="text-white text-center">Recent Interwiew Performances</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <Table>
-                                <TableBody>
-                                    <TableRow className="border-b border-slate-700 hover:bg-slate-800">
-                                        <TableCell className="font-medium text-white">Frontend Developer</TableCell>
-                                        <TableCell className="text-slate-400">Tech Round</TableCell>
-                                        <TableCell className="text-slate-400">Google, Microsoft, Adobe, OpenAI</TableCell>
-                                        <TableCell className="text-slate-400">Nov 25, 2025</TableCell>
-                                        <TableCell className="text-right">
-                                            <span className='text-green-400 font-bold'>84%</span>
-                                        </TableCell>
-                                    </TableRow>
-                                    <TableRow className="border-b border-slate-700 hover:bg-slate-800">
-                                        <TableCell className="font-medium text-white">Frontend Developer</TableCell>
-                                        <TableCell className="text-slate-400">Tech Round</TableCell>
-                                        <TableCell className="text-slate-400">Google, Microsoft, Adobe, OpenAI</TableCell>
-                                        <TableCell className="text-slate-400">Nov 25, 2025</TableCell>
-                                        <TableCell className="text-right">
-                                            <span className='text-green-400 font-bold'>84%</span>
-                                        </TableCell>
-                                    </TableRow>
-                                    <TableRow className="border-b border-slate-700 hover:bg-slate-800">
-                                        <TableCell className="font-medium text-white">Frontend Developer</TableCell>
-                                        <TableCell className="text-slate-400">Tech Round</TableCell>
-                                        <TableCell className="text-slate-400">Google, Microsoft, Adobe, OpenAI</TableCell>
-                                        <TableCell className="text-slate-400">Nov 25, 2025</TableCell>
-                                        <TableCell className="text-right">
-                                            <span className='text-green-400 font-bold'>84%</span>
-                                        </TableCell>
-                                    </TableRow>
-                                </TableBody>
-                            </Table>
+                            {allInterviewsList.count <= 0 
+                                ? <p className='text-slate-200 font-semibold'>There are no interviews...!</p> 
+                                : (
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow className="border-b hover:bg-indigo-600/30">
+                                                <TableHead className="text-indigo-500">Sr. No.</TableHead>
+                                                <TableHead className="text-indigo-500">Title</TableHead>
+                                                <TableHead className="text-indigo-500">Type</TableHead>
+                                                <TableHead className="text-indigo-500">Experience</TableHead>
+                                                <TableHead className="text-indigo-500">Duration</TableHead>
+                                                <TableHead className="text-indigo-500">Date</TableHead>
+                                                <TableHead className="text-indigo-500">Score</TableHead>
+                                                <TableHead className="text-indigo-500">Feedback</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {allInterviewsList?.allInterviews?.map((item, index) => {
+                                                return (
+                                                    <TableRow key={index} className="border-b border-slate-700 hover:bg-slate-800">
+                                                        <TableCell className="font-medium text-white">{index+1}</TableCell>
+                                                        <TableCell className="font-medium text-white">{item.title}</TableCell>
+                                                        <TableCell className="text-slate-400 capitalize">{item.type}</TableCell>
+                                                        <TableCell className="text-slate-400 capitalize">{item.experience}</TableCell>
+                                                        <TableCell className="text-slate-400">{item.duration / 60} mins</TableCell>
+                                                        <TableCell className="text-slate-400">{formatDate(item.updatedAt)}</TableCell>
+                                                        <TableCell className="text-right">
+                                                            <span className={`font-bold
+                                                                ${item.overallFeedback.score >= 80 ? 'text-emerald-500' : 
+                                                                item.overallFeedback.score >= 60 ? 'text-amber-500/90' : 'text-red-500/90'}`}
+                                                            >{item.overallFeedback.score ?? '--'}</span>
+                                                        </TableCell>
+                                                        <TableCell className="text-slate-400 capitalize">{item.overallFeedback.recommendation}</TableCell>
+                                                    </TableRow>
+                                                )
+                                            })}
+                                            
+                                        </TableBody>
+                                    </Table>
+                                )
+                            }
                         </CardContent>
                     </Card>
                 </div>

@@ -3,6 +3,7 @@ const { generateAIQuestions } = require('../utils/generateQuestions');
 const { AssemblyAI } = require('assemblyai');
 const { getOverallFeedback, getQuestionWiseFeedback, evaluateQuestions } = require('../utils/getFeedback');
 const { calculateOverallScore, finalOverallScore } = require('../utils/calculateOverallScore');
+const calculateAvgScore = require('../utils/calculateAvgScore');
 
 
 
@@ -59,9 +60,15 @@ const getUserInterviews = async (req, res) => {
             user: req.user.id
         }).sort({ createdAt: -1 }); // latest first
 
+        // calculate average score
+        const avgScore = allInterviews.length > 0 
+            ? calculateAvgScore(allInterviews)
+            : 0;
+
         // now send response
         res.status(200).send({
             count: allInterviews.length,
+            avgScore: avgScore,
             allInterviews: allInterviews
         });
 
@@ -69,7 +76,8 @@ const getUserInterviews = async (req, res) => {
 
     } catch (error) {
         res.status(500).send({ message: 'Server Error!' });
-        console.log("Error in listing interviews list for a user...")
+        console.log("Error in listing interviews list for a user...");
+        console.log("Actual Error: ", error.message)
     }
 }
 
