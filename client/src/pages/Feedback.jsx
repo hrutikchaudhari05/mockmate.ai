@@ -51,13 +51,7 @@ const Feedback = () => {
 
     return (
         
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="min-h-screen bg-slate-950 text-white"
-        >
-            {/* Container with animation */}
+            
             <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -65,215 +59,214 @@ const Feedback = () => {
                 className="container mx-auto px-4 py-8"
             >
                 {/* Your existing code... */}
-                <div className="min-h-screen bg-slate-950 text-white">
-                    <div className="container mx-auto px-4 py-8">
-                        <h1 className="text-4xl font-bold text-center mb-2">
-                            Interview Results
-                        </h1>
-                        <p className="text-slate-400 text-center mb-8">
-                            Detailed analysis of your performance
-                        </p>
-                        
-                        {/* Overall Score Card */}
-                        <Card className="bg-slate-900 border-slate-800 mb-8 mx-48">
-                            <CardHeader className="items-center">
-                                <CardTitle className="flex text-2xl items-center gap-2 text-slate-300">
-                                    <TrendingUp size={24} className="text-indigo-600 mt-[3px]" />
-                                    Overall Performance Score
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <div className="text-3xl font-bold text-white">
-                                        {score}%
-                                    </div>
-                                    <div className={`font-medium text-xl capitalize ${getRecommendationColor(score)}`}>
-                                        {/* Recommendation */}
-                                        {currentInterview.overallFeedback.recommendation}
-                                    </div>
+                
+                <div className="container mx-auto px-4 py-8 text-white">
+                    <h1 className="text-4xl font-bold text-center mb-2">
+                        Interview Results
+                    </h1>
+                    <p className="text-slate-400 text-center mb-8">
+                        Detailed analysis of your performance
+                    </p>
+                    
+                    {/* Overall Score Card */}
+                    <Card className="bg-slate-900 border-slate-800 mb-8 mx-48">
+                        <CardHeader className="items-center">
+                            <CardTitle className="flex text-2xl items-center gap-2 text-slate-300">
+                                <TrendingUp size={24} className="text-indigo-600 mt-[3px]" />
+                                Overall Performance Score
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <div className="text-3xl font-bold text-white">
+                                    {score}%
                                 </div>
-                                <Progress value={score} className="h-2 [&>div]:bg-indigo-600" />
-                            </CardContent>
-                        </Card>
+                                <div className={`font-medium text-xl capitalize ${getRecommendationColor(score)}`}>
+                                    {/* Recommendation */}
+                                    {currentInterview.overallFeedback.recommendation}
+                                </div>
+                            </div>
+                            <Progress value={score} className="h-2 [&>div]:bg-indigo-600" />
+                        </CardContent>
+                    </Card>
 
-                        {/* Summary */}
-                        <Card className="bg-slate-900 border-slate-800 mb-8 mx-24 ">
-                            <CardHeader className="items-center">
-                                <CardTitle className="flex text-2xl items-center gap-2 text-slate-300">
-                                    <MessageSquareText size={24} className="text-indigo-600 items-center mt-[3px]" />
-                                    Feedback
+                    {/* Summary */}
+                    <Card className="bg-slate-900 border-slate-800 mb-8 mx-24 ">
+                        <CardHeader className="items-center">
+                            <CardTitle className="flex text-2xl items-center gap-2 text-slate-300">
+                                <MessageSquareText size={24} className="text-indigo-600 items-center mt-[3px]" />
+                                Feedback
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                            <p className='text-slate-400'>
+                                {currentInterview.overallFeedback.summary}
+                            </p>
+                        </CardContent>
+                    </Card>
+
+                    <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 bg-slate-900 mx-6 mb-8 p-4 rounded-md border border-slate-800'>
+                        {/* Areas of Improvement */}
+                        <Card className=" bg-slate-900 border-slate-800">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-slate-300 text-xl">
+                                    <XCircle className="text-red-500/90 mt-[1px]" />
+                                    Areas for Improvement
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-2">
-                                <p className='text-slate-400'>
-                                    {currentInterview.overallFeedback.summary}
-                                </p>
+                            <CardContent>
+                                <ul className="space-y-3">
+                                    {currentInterview.overallFeedback.improvementTips.length === 0 ? (
+                                        <li className='text-slate-400 italic'>
+                                            No improvement needed
+                                        </li>
+                                    ) : (
+                                        currentInterview.overallFeedback.improvementTips.map((item, index) => (
+                                            <li key={index} className="flex items-start gap-3">
+                                                <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
+                                                <span className="text-slate-300">{item}</span>
+                                            </li>
+                                        ))
+                                    )}
+                                </ul>
                             </CardContent>
                         </Card>
 
-                        <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 bg-slate-900 mx-6 mb-8 p-4 rounded-md border border-slate-800'>
-                            {/* Areas of Improvement */}
-                            <Card className=" bg-slate-900 border-slate-800">
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2 text-slate-300 text-xl">
-                                        <XCircle className="text-red-500/90 mt-[1px]" />
-                                        Areas for Improvement
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <ul className="space-y-3">
-                                        {currentInterview.overallFeedback.improvementTips.length === 0 ? (
-                                            <li className='text-slate-400 italic'>
-                                                No improvement needed
-                                            </li>
-                                        ) : (
-                                            currentInterview.overallFeedback.improvementTips.map((item, index) => (
-                                                <li key={index} className="flex items-start gap-3">
-                                                    <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
-                                                    <span className="text-slate-300">{item}</span>
-                                                </li>
-                                            ))
-                                        )}
-                                    </ul>
-                                </CardContent>
-                            </Card>
-
-                            {/* Areas of Strengths */}
-                            <Card className=" bg-slate-900 border-slate-800">
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2 text-slate-300 text-xl">
-                                        <CheckCircle2 className="text-emerald-500 mt-[1px]" />
-                                        Your Strengths
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <ul className="space-y-3">
-                                        {currentInterview.overallFeedback.strengths.length === 0 ? (
-                                            <li className='text-slate-400 italic'>
-                                                No strengths are shown
-                                            </li>
-                                        ) : (
-                                            currentInterview.overallFeedback.strengths.map((item, index) => (
-                                                <li key={index} className="flex items-start gap-3">
-                                                    <div className="w-2 h-2 bg-emerald-500 rounded-full mt-2"></div>
-                                                    <span className="text-slate-300">{item}</span>
-                                                </li>
-                                            ))
-                                        )}
-                                    </ul>
-                                </CardContent>
-                            </Card>
-                        </div>
-
-                        {/* Question-wise Analysis */}
-                        <Card className="bg-slate-900 border-slate-800 mb-8 mx-6">
+                        {/* Areas of Strengths */}
+                        <Card className=" bg-slate-900 border-slate-800">
                             <CardHeader>
-                                <CardTitle className="text-center text-3xl font-medium text-indigo-600 mb-2">Question-wise Analysis</CardTitle>
+                                <CardTitle className="flex items-center gap-2 text-slate-300 text-xl">
+                                    <CheckCircle2 className="text-emerald-500 mt-[1px]" />
+                                    Your Strengths
+                                </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-6">
-                                {currentInterview.questions.map((q, index) => (
-                                    <div key={index} className="flex flex-col gap-2 border-b border-slate-800 pb-4 last:border-0">
-                                        
-                                        {/* Question-Text */}
-                                        <div className="flex justify-between items-start mb-2">
-                                            <h3 className="font-medium text-white text-xl">
-                                                Q{index + 1}: {q.questionObj.qtxt}
-                                            </h3>
-                                            <Badge 
-                                                className={`px-2 text-sm font-semibold text-center text-slate-200
-                                                    ${q.feedbackObj.score >= 8 ? 'bg-emerald-500' : 
-                                                        q.feedbackObj.score >= 6 ? 'bg-amber-500/90' : 'bg-red-500/90'}`}
-                                            >
-                                                {q.feedbackObj.score}
-                                            </Badge>
-                                        </div>
-
-                                        {/* Summary */}
-                                        <p className="flex items-start gap-2 text-slate-400 text-sm">
-                                            <MessageSquareText size={16} className='text-indigo-600 mt-[3px] shrink-0'/>
-                                            <span>
-                                                <span className='text-slate-200 font-medium'>Summary: </span> 
-                                                {q.feedbackObj.summary}
-                                            </span>
-                                        </p>
-
-                                        {/* Ideal Answer */}
-                                        <p className="flex items-start gap-2 text-slate-400 text-sm">
-                                            <Sparkle size={16} className='text-fuchsia-400 mt-[3px] shrink-0' />
-                                            <span>
-                                                <span className='text-slate-200 font-medium'>Ideal Answer: </span> 
-                                                {q.feedbackObj.idealAnswer}
-                                            </span>
-                                        </p>
-
-                                        {/* Strengths */}
-                                        <div className='flex items-start gap-2 text-slate-400 text-sm'>
-                                            <CheckCircle2 size={16} className='text-emerald-500 mt-[2px] shrink-0' />
-                                            <div>
-                                                <span className='text-slate-200 font-medium'>
-                                                    Your Strengths: 
-                                                </span>
-                                                {q.feedbackObj.strengths.length === 0 ? (
-                                                    <span className='ml-1 italic'>
-                                                        None highlighted
-                                                    </span>
-                                                ) : (
-                                                    <ul>
-                                                        {q.feedbackObj.strengths.map((strength, i) => (
-                                                            <li key={i} className='flex items-start gap-1 pl-6'>
-                                                                <Dot size={20} className='mt-0.5 text-emerald-400 shrink-0' />
-                                                                <span>{strength}</span>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Improvement Tips */}
-                                        <div className="flex items-start gap-2 text-slate-400 text-sm">
-                                            <AlertCircle size={16} className='text-amber-400 mt-[2px] shrink-0' />
-                                            <div>
-                                                <span className='text-slate-200 font-medium'>
-                                                    Improvement Tips: 
-                                                </span>
-                                                {q.feedbackObj.improvementTips.length === 0 ? (
-                                                    <span className='ml-1 italic'>None highlighted</span>
-                                                ) : (
-                                                    <ul>
-                                                        {q.feedbackObj.improvementTips.map((tip, i) => (
-                                                            <li key={i} className='flex items-start gap-1 pl-6'>
-                                                                <Dot size={20} className='mt-0.5 text-amber-400/80 shrink-0' />
-                                                                <span>{tip}</span>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
+                            <CardContent>
+                                <ul className="space-y-3">
+                                    {currentInterview.overallFeedback.strengths.length === 0 ? (
+                                        <li className='text-slate-400 italic'>
+                                            No strengths are shown
+                                        </li>
+                                    ) : (
+                                        currentInterview.overallFeedback.strengths.map((item, index) => (
+                                            <li key={index} className="flex items-start gap-3">
+                                                <div className="w-2 h-2 bg-emerald-500 rounded-full mt-2"></div>
+                                                <span className="text-slate-300">{item}</span>
+                                            </li>
+                                        ))
+                                    )}
+                                </ul>
                             </CardContent>
                         </Card>
-
-                        
-
-                        {/* Action Buttons */}
-                        <div className="flex gap-4 justify-center">
-                            <Button className="bg-indigo-600 hover:bg-indigo-800 text-slate-200">
-                                Download Detailed Report
-                            </Button>
-                            
-                            <Button className="border-slate-700 text-indigo-600 bg-slate-900 font-bold hover:bg-slate-950 hover:border hover:border-indigo-700"
-                            onClick={() => navigate("/dashboard")}>
-                                Back to Dashboard
-                            </Button>
-                        </div>
                     </div>
 
+                    {/* Question-wise Analysis */}
+                    <Card className="bg-slate-900 border-slate-800 mb-8 mx-6">
+                        <CardHeader>
+                            <CardTitle className="text-center text-3xl font-medium text-indigo-600 mb-2">Question-wise Analysis</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            {currentInterview.questions.map((q, index) => (
+                                <div key={index} className="flex flex-col gap-2 border-b border-slate-800 pb-4 last:border-0">
+                                    
+                                    {/* Question-Text */}
+                                    <div className="flex justify-between items-start mb-2">
+                                        <h3 className="font-medium text-white text-xl">
+                                            Q{index + 1}: {q.questionObj.qtxt}
+                                        </h3>
+                                        <Badge 
+                                            className={`px-2 text-sm font-semibold text-center text-slate-200
+                                                ${q.feedbackObj.score >= 8 ? 'bg-emerald-500' : 
+                                                    q.feedbackObj.score >= 6 ? 'bg-amber-500/90' : 'bg-red-500/90'}`}
+                                        >
+                                            {q.feedbackObj.score}
+                                        </Badge>
+                                    </div>
+
+                                    {/* Summary */}
+                                    <p className="flex items-start gap-2 text-slate-400 text-sm">
+                                        <MessageSquareText size={16} className='text-indigo-600 mt-[3px] shrink-0'/>
+                                        <span>
+                                            <span className='text-slate-200 font-medium'>Summary: </span> 
+                                            {q.feedbackObj.summary}
+                                        </span>
+                                    </p>
+
+                                    {/* Ideal Answer */}
+                                    <p className="flex items-start gap-2 text-slate-400 text-sm">
+                                        <Sparkle size={16} className='text-fuchsia-400 mt-[3px] shrink-0' />
+                                        <span>
+                                            <span className='text-slate-200 font-medium'>Ideal Answer: </span> 
+                                            {q.feedbackObj.idealAnswer}
+                                        </span>
+                                    </p>
+
+                                    {/* Strengths */}
+                                    <div className='flex items-start gap-2 text-slate-400 text-sm'>
+                                        <CheckCircle2 size={16} className='text-emerald-500 mt-[2px] shrink-0' />
+                                        <div>
+                                            <span className='text-slate-200 font-medium'>
+                                                Your Strengths: 
+                                            </span>
+                                            {q.feedbackObj.strengths.length === 0 ? (
+                                                <span className='ml-1 italic'>
+                                                    None highlighted
+                                                </span>
+                                            ) : (
+                                                <ul>
+                                                    {q.feedbackObj.strengths.map((strength, i) => (
+                                                        <li key={i} className='flex items-start gap-1 pl-6'>
+                                                            <Dot size={20} className='mt-0.5 text-emerald-400 shrink-0' />
+                                                            <span>{strength}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Improvement Tips */}
+                                    <div className="flex items-start gap-2 text-slate-400 text-sm">
+                                        <AlertCircle size={16} className='text-amber-400 mt-[2px] shrink-0' />
+                                        <div>
+                                            <span className='text-slate-200 font-medium'>
+                                                Improvement Tips: 
+                                            </span>
+                                            {q.feedbackObj.improvementTips.length === 0 ? (
+                                                <span className='ml-1 italic'>None highlighted</span>
+                                            ) : (
+                                                <ul>
+                                                    {q.feedbackObj.improvementTips.map((tip, i) => (
+                                                        <li key={i} className='flex items-start gap-1 pl-6'>
+                                                            <Dot size={20} className='mt-0.5 text-amber-400/80 shrink-0' />
+                                                            <span>{tip}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </CardContent>
+                    </Card>
+
+                    
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-4 justify-center">
+                        <Button className="bg-indigo-600 hover:bg-indigo-800 text-slate-200">
+                            Download Detailed Report
+                        </Button>
+                        
+                        <Button className="border-slate-700 text-indigo-600 bg-slate-900 font-bold hover:bg-slate-950 hover:border hover:border-indigo-700"
+                        onClick={() => navigate("/dashboard")}>
+                            Back to Dashboard
+                        </Button>
+                    </div>
                 </div>
+
             </motion.div>
-        </motion.div>
+        
     )
 }
 
