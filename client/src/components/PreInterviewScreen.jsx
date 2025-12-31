@@ -25,9 +25,6 @@ const PreInterviewScreen = ({onStart}) => {
 
     const { interviewId } = useParams();
 
-    
-   
-
     // redux se interview data lo 
     const { currentInterview, interviewLoading } = useSelector((state) => state.interview)
     console.log("mmm Interview Data: ", currentInterview)
@@ -57,12 +54,14 @@ const PreInterviewScreen = ({onStart}) => {
     const [countdown, setCountdown] = useState(5);  // to display on the screen
     // const [mediaStream, setMediaStream] = useState(null);   // sirf cleanup ke liye - jb current component unmount hoga tb mediaStream bhi stop kr do
     // actually mediaStream ek object store karta hai named stream ( jisme user ke media permissions stored hote hai )
-    
-    
 
     // mic allow permission popup by browser 
     const requestPermissions = async () => {
         try {
+
+            if (currentInterview.status === 'evaluated') {
+                navigate(`/feedback/${interviewId}`);
+            }
             
             // audio permission req,
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -200,14 +199,18 @@ const PreInterviewScreen = ({onStart}) => {
                 <Button 
                     disabled={isStarting}
                     onClick={requestPermissions}
-                    className="mt-12 px-8 py-6 text-lg bg-slate-900 hover:bg-indigo-600"
+                    className="mt-12 mb-4 px-8 py-6 text-lg bg-slate-900 hover:bg-indigo-600"
                 >
                     Begin Interview
                 </Button>
 
                 {showFullscreenBtn && (
-                    <Button onClick={enterFullScreenAndStart}>
-                        🚀 Enter Full-Screen & Start Interview
+                    <Button 
+                        onClick={enterFullScreenAndStart}
+                        className="border-slate-800 border text-indigo-600 bg-slate-900 font-bold hover:bg-slate-950 hover:border hover:border-indigo-700"
+                        size="lg"
+                    >
+                        Enter Full-Screen & Start Interview
                     </Button>
                 )}
 

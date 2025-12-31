@@ -322,7 +322,10 @@ const ActualInterviewScreen = ({ stream }) => {
 
     // sideEffect - timer countdown - auto submit interview when timer ends
     useEffect(() => {
-        if (!interviewDuration || currentInterview?.status === 'evaluated') return; // wait until duration is available
+        if (!interviewDuration || currentInterview?.status === 'evaluated') {
+            navigate(`/feedback/${interviewId}`);
+            return;
+        }; // wait until duration is available
 
         // ALWAYS start fresh for new interview
         localStorage.removeItem('time_left');  // <-- ADD THIS
