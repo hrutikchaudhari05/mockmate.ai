@@ -54,7 +54,7 @@ const Interviews = () => {
                                         <TableHead className="text-indigo-500">Experience</TableHead>
                                         <TableHead className="text-indigo-500">Duration</TableHead>
                                         <TableHead className="text-indigo-500">Date</TableHead>
-                                        <TableHead className="text-indigo-500">Score</TableHead>
+                                        <TableHead className="text-indigo-500 pr-8 text-right">Score</TableHead>
                                         <TableHead className="text-indigo-500">Feedback</TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -68,7 +68,7 @@ const Interviews = () => {
                                                 <TableCell className="text-slate-400 capitalize">{item.experience}</TableCell>
                                                 <TableCell className="text-slate-400">{item.duration / 60} mins</TableCell>
                                                 <TableCell className="text-slate-400">{formatDate(item.updatedAt)}</TableCell>
-                                                <TableCell className="text-right">
+                                                <TableCell className="text-right pr-8 tabular-nums">
                                                     <span className={`font-bold
                                                         ${item.overallFeedback.score >= 80 ? 'text-emerald-500' : 
                                                         item.overallFeedback.score >= 60 ? 'text-amber-500/90' : 'text-red-500/90'}`}

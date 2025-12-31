@@ -96,17 +96,17 @@ const Dashboard = () => {
                 <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
 
                     {/* First Card  */}
-                    <StatCard title="Interviews Completed" content={totalInterviews} icon={Award} color="text-indigo-600" />
-                    <StatCard title="Average Score" content={averageScore} icon={Target} color="text-indigo-600" />
-                    <StatCard title="Average Interview Duration" content={`${averageDuration} m`} icon={Clock} color="text-indigo-600" />
-                    <StatCard title="Current Streak" content={`${streak} D`} icon={Flame} color="text-indigo-600" />
+                    <StatCard title="Interviews Completed" content={totalInterviews} icon={Award} color="text-amber-500/80" />
+                    <StatCard title="Average Score" content={averageScore} icon={Target} color="text-amber-500/80" />
+                    <StatCard title="Average Interview Duration" content={`${averageDuration} m`} icon={Clock} color="text-amber-500/80" />
+                    <StatCard title="Current Streak" content={`${streak} D`} icon={Flame} color="text-amber-500/80" />
                     
                 </div>
 
                 <div className='w-full border border-slate-800 rounded-lg text-center py-6 space-y-8'>
                     <p className='text-slate-300 font-bold text-3xl'>Ready for your next challenge?</p>
                     <Button
-                        className="bg-indigo-600 hover:bg-indigo-700 p-6 text-lg"
+                        className="bg-indigo-600 hover:bg-indigo-700 p-6 text-lg "
                         onClick={() => setShowSetup(true)}
                     >
                         <Play size={40} className='mr-3' /> 
@@ -125,14 +125,14 @@ const Dashboard = () => {
                                 : (
                                     <Table>
                                         <TableHeader>
-                                            <TableRow className="border-b hover:bg-indigo-600/30">
+                                            <TableRow className="border-b bg-slate-800/40 rounded-lg">
                                                 <TableHead className="text-indigo-500">Sr. No.</TableHead>
                                                 <TableHead className="text-indigo-500">Title</TableHead>
                                                 <TableHead className="text-indigo-500">Type</TableHead>
                                                 <TableHead className="text-indigo-500">Experience</TableHead>
                                                 <TableHead className="text-indigo-500">Duration</TableHead>
                                                 <TableHead className="text-indigo-500">Date</TableHead>
-                                                <TableHead className="text-indigo-500">Score</TableHead>
+                                                <TableHead className="text-indigo-500 text-right pr-8">Score</TableHead>
                                                 <TableHead className="text-indigo-500">Feedback</TableHead>
                                             </TableRow>
                                         </TableHeader>
@@ -146,7 +146,7 @@ const Dashboard = () => {
                                                         <TableCell className="text-slate-400 capitalize">{item.experience}</TableCell>
                                                         <TableCell className="text-slate-400">{item.duration / 60} mins</TableCell>
                                                         <TableCell className="text-slate-400">{formatDate(item.updatedAt)}</TableCell>
-                                                        <TableCell className="text-right">
+                                                        <TableCell className="pr-8 tabular-nums text-right">
                                                             <span className={`font-bold
                                                                 ${item.overallFeedback.score >= 80 ? 'text-emerald-500' : 
                                                                 item.overallFeedback.score >= 60 ? 'text-amber-500/90' : 'text-red-500/90'}`}
