@@ -27,6 +27,7 @@ const Interviews = () => {
     const allInterviewsList = currentInterview?.allInterviews;
     console.log("All Interviews List: ", allInterviewsList);
 
+    // this is for interview listing
     
 
     return (
