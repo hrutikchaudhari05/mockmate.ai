@@ -16,6 +16,7 @@ import Landing from './pages/Landing';
 import Interviews from './pages/Interviews';
 import { autoLogin } from './store/authSlice';
 import LoadingScreen from './components/LoadingScreen';
+import Guide from './pages/Guide';
 
 
 // create AuthenticateRoute 
@@ -82,6 +83,7 @@ function App() {
         {/* Public Routes - Sab access kr sakte hain */}
         <Route path='/login' element={<Login />} />
         <Route path='/register' element={<Register />} />
+        
 
         {/* Protected Route - Dashboard */}
         <Route path="/dashboard" element={
@@ -94,6 +96,13 @@ function App() {
         <Route path="/interviews" element={
           <AuthenticatedRoute>
             <Interviews />
+          </AuthenticatedRoute>
+        } />
+
+        {/* Protected Route - guide */}
+        <Route path="/guide" element={
+          <AuthenticatedRoute>
+            <Guide />
           </AuthenticatedRoute>
         } />
 
