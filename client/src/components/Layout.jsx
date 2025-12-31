@@ -5,7 +5,8 @@ import {Link, NavLink, useLocation} from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Redux imports
-import { useDispatch, useNavigate } from 'react-redux';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { logout } from '@/store/authSlice';
 
 // shadcn imports 

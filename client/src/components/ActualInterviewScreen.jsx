@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from './ui/button';   
 import { Clock, Upload } from 'lucide-react';   // for timer
 import { Textarea } from './ui/textarea';
@@ -41,54 +41,7 @@ const ActualInterviewScreen = ({ stream }) => {
     const [timeLeft, setTimeLeft] = useState(interviewDuration);     // global timer 
     // const [audioBlob, setAudioBlob] = useState(null);   // audio file save karne ke liye
      
-    
-    // ActualInterviewScreen.jsx me add:
-    useEffect(() => {
-        if (!currentInterview && interviewId) {
-            console.log("Interview ID being sent: ", interviewId);
-            console.log("Interview Duration from Redux:", interviewDuration, "Type:", typeof interviewDuration);
-            dispatch(fetchInterviewById(interviewId));
-        }
-    }, [currentInterview, interviewId, dispatch]);
 
-
-    useEffect(() => {
-        if (currentInterview) {
-            console.log("InterviewData: ", currentInterview);
-            console.log("Interview Duration: ", currentInterview.duration);
-            console.log("Interview Question: ", currentInterview?.questions);
-            console.log('InterviewId: ', interviewId);
-        }
-    }, [currentInterview])
-    
-
-    useEffect(() => {
-        console.log('Stream Prop: ', stream);
-    }, [stream])
-
-
-    // agar user interview chhod kr dusre page pr gaya to bhi mic access active rahega, to uski wajah se following problems occur honge:
-    // 1. battery drain karega 
-    // 2. privacy issue hai
-    // 3. Memory leak create karega
-    // iska ek solution hai ke hum ek cleanup function banate hai, so that jb component unmount hoga tb mic access band kr denge 
-    useEffect(() => {
-        // ye fun tb run hoga jb component UNMOUNT ho 
-        return () => {
-            console.log("Cleaning up media stream...");
-
-            // check if media stream exist karta hia ya nhi 
-            if (stream) {
-                // ab media stream ke saare tracks band karne padenge 
-                stream.getTracks().forEach(track => {
-                    track.stop();   // track ek particular type ka stream hai like audio track video track
-                    console.log('Mic track stopped!');
-                });
-            }
-
-        };
-    }, [stream]); // jb bhi mediaStream change hogi tb ye cleanup fun firse banega
-    
 
     // time conversion handler 
     const formatTime = (t) => {
@@ -101,90 +54,6 @@ const ActualInterviewScreen = ({ stream }) => {
         }
         return `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
     }
-
-    // sideEffect - timer countdown - auto submit interview when timer ends
-    useEffect(() => {
-        if (!interviewDuration || currentInterview?.status === 'evaluated') return; // wait until duration is available
-
-        // ALWAYS start fresh for new interview
-        localStorage.removeItem('time_left');  // <-- ADD THIS
-
-        // timer restore karna padega localStorage se 
-        const savedTime = localStorage.getItem('time_left');
-        const initialTime = savedTime ? parseInt(savedTime) : interviewDuration;
-        console.log('Initial time: ', {savedTime, interviewDuration, initialTime});
-        
-        // Set initial time
-        setTimeLeft(initialTime);
-
-        globalTimerRef.current = setInterval(() => {
-            setTimeLeft(prev => {
-                // agar time is already 0, ab interval clear karte hai 
-                if (prev <= 0) {
-                    clearInterval(globalTimerRef.current); 
-                    localStorage.removeItem('time_left');
-                    // CAUTION: pehle maine handleEndInterview ya pr use kiya thaa, but wo render issues create kr rha thaa so maine uske liye alag useEffect use kiya 
-                    return 0;
-                }
-                // otherwise reduce time every second 
-                const newTime = prev - 1;
-                // ab newTime ko localStorage me save karenge 
-                localStorage.setItem('time_left', newTime);
-                return newTime;
-            });
-        }, 1000);
-
-        // cleanup code - component unmount hone pr timer band kr do
-        return () => {
-            if (globalTimerRef.current) clearInterval(globalTimerRef.current);
-        }
-    }, [interviewDuration]);
-
-    useEffect(() => {
-        // Clean old timer when interview ID changes
-        if (prevInterviewIdRef.current !== interviewId) {
-            localStorage.removeItem('time_left');
-            prevInterviewIdRef.current = interviewId;
-        }
-    }, [interviewId]);
-
-
-    // Ab handleEndInterview ke liye alag useEffect 
-    useEffect(() => {
-        if (interviewDuration && timeLeft === 0) {
-            console.log('Timer expired!');
-            handleEndInterview();
-        }
-    }, [timeLeft]) 
-
-
-
-    // back button disable
-    // useEffect(() => {
-    //     // Interview start hone ke baad back button block
-    //     window.history.pushState(null, '', window.location.href);
-        
-    //     window.onpopstate = () => {
-    //         window.history.pushState(null, '', window.location.href);
-    //         alert('Interview complete hone tak back nahi ja sakte!');
-    //     };
-        
-    //     return () => {
-    //         window.onpopstate = null; // Cleanup jab interview khatam ho
-    //     };
-    // }, []);
-
-    useEffect(() => {
-        // Force reload if user goes back
-        window.onbeforeunload = () => {
-            return "Interview chal raha hai, sure ho exit karna chahte ho?";
-        };
-        
-        return () => {
-            window.onbeforeunload = null;
-        };
-    }, []);
-
 
     // ALL HANDLERS 
     // 1 - handle start recording 
@@ -269,10 +138,13 @@ const ActualInterviewScreen = ({ stream }) => {
     }
 
     // 2 - stop recording 
-    const handleStopRecording = () => {
+    const handleStopRecording = useCallback(() => {
+
+        
 
         // 1. recording close karna padega 
         if (mediaRecorderRef.current && isRecording) {
+            console.log("Recording stopped after interview ended!")
             mediaRecorderRef.current.stop();
         }
 
@@ -286,7 +158,7 @@ const ActualInterviewScreen = ({ stream }) => {
 
         setRecordSeconds(0);
 
-    }
+    }, [isRecording]);
 
 
     // testing audio playback 
@@ -352,7 +224,12 @@ const ActualInterviewScreen = ({ stream }) => {
     }
 
     // 5 - End Interview 
-    const handleEndInterview = async () => {
+    const handleEndInterview = useCallback(async () => {
+
+        // pehle recording band karo 
+        if (isRecording) {
+            handleStopRecording();
+        }
 
         // stop timer first 
         if (globalTimerRef.current) {
@@ -395,8 +272,147 @@ const ActualInterviewScreen = ({ stream }) => {
         // Back button normal karo
         // window.onpopstate = null;
         
-    }    
+    }, [currentInterview?.status, interviewId, isRecording, navigate, dispatch]);
 
+    
+    // ActualInterviewScreen.jsx me add:
+    useEffect(() => {
+        if (!currentInterview && interviewId) {
+            console.log("Interview ID being sent: ", interviewId);
+            console.log("Interview Duration from Redux:", interviewDuration, "Type:", typeof interviewDuration);
+            dispatch(fetchInterviewById(interviewId));
+        }
+    }, [currentInterview, interviewId, dispatch]);
+
+
+    useEffect(() => {
+        if (currentInterview) {
+            console.log("InterviewData: ", currentInterview);
+            console.log("Interview Duration: ", currentInterview.duration);
+            console.log("Interview Question: ", currentInterview?.questions);
+            console.log('InterviewId: ', interviewId);
+        }
+    }, [currentInterview])
+    
+
+    useEffect(() => {
+        console.log('Stream Prop: ', stream);
+    }, [stream])
+
+
+    // agar user interview chhod kr dusre page pr gaya to bhi mic access active rahega, to uski wajah se following problems occur honge:
+    // 1. battery drain karega 
+    // 2. privacy issue hai
+    // 3. Memory leak create karega
+    // iska ek solution hai ke hum ek cleanup function banate hai, so that jb component unmount hoga tb mic access band kr denge 
+    useEffect(() => {
+        // ye fun tb run hoga jb component UNMOUNT ho 
+        return () => {
+            console.log("Cleaning up media stream...");
+
+            // check if media stream exist karta hia ya nhi 
+            if (stream) {
+                // ab media stream ke saare tracks band karne padenge 
+                stream.getTracks().forEach(track => {
+                    track.stop();   // track ek particular type ka stream hai like audio track video track
+                    console.log('Mic track stopped!');
+                });
+            }
+
+        };
+    }, [stream]); // jb bhi mediaStream change hogi tb ye cleanup fun firse banega
+
+    // sideEffect - timer countdown - auto submit interview when timer ends
+    useEffect(() => {
+        if (!interviewDuration || currentInterview?.status === 'evaluated') return; // wait until duration is available
+
+        // ALWAYS start fresh for new interview
+        localStorage.removeItem('time_left');  // <-- ADD THIS
+
+        // timer restore karna padega localStorage se 
+        const savedTime = localStorage.getItem('time_left');
+        const initialTime = savedTime ? parseInt(savedTime) : interviewDuration;
+        console.log('Initial time: ', {savedTime, interviewDuration, initialTime});
+        
+        // Set initial time
+        setTimeLeft(initialTime);
+
+        globalTimerRef.current = setInterval(() => {
+            setTimeLeft(prev => {
+                // agar time is already 0, ab interval clear karte hai 
+                if (prev <= 0) {
+                    clearInterval(globalTimerRef.current); 
+                    localStorage.removeItem('time_left');
+                    // CAUTION: pehle maine handleEndInterview ya pr use kiya thaa, but wo render issues create kr rha thaa so maine uske liye alag useEffect use kiya 
+                    return 0;
+                }
+                // otherwise reduce time every second 
+                const newTime = prev - 1;
+                // ab newTime ko localStorage me save karenge 
+                localStorage.setItem('time_left', newTime);
+                return newTime;
+            });
+        }, 1000);
+
+        // cleanup code - component unmount hone pr timer band kr do
+        return () => {
+            if (globalTimerRef.current) clearInterval(globalTimerRef.current);
+        }
+    }, [interviewDuration]);
+
+    useEffect(() => {
+        // Clean old timer when interview ID changes
+        if (prevInterviewIdRef.current !== interviewId) {
+            localStorage.removeItem('time_left');
+            prevInterviewIdRef.current = interviewId;
+        }
+    }, [interviewId]);
+
+
+    // Ab handleEndInterview ke liye alag useEffect 
+    useEffect(() => {
+        if (interviewDuration && timeLeft === 0) {
+            console.log('Timer expired!');
+
+            // timer khatam hone pr recording band kr do 
+            if (isRecording) {
+                handleStopRecording();
+            }
+
+            handleEndInterview();
+        }
+    }, [timeLeft, interviewDuration, isRecording, handleStopRecording, handleEndInterview]) 
+
+
+
+    // back button disable
+    // useEffect(() => {
+    //     // Interview start hone ke baad back button block
+    //     window.history.pushState(null, '', window.location.href);
+        
+    //     window.onpopstate = () => {
+    //         window.history.pushState(null, '', window.location.href);
+    //         alert('Interview complete hone tak back nahi ja sakte!');
+    //     };
+        
+    //     return () => {
+    //         window.onpopstate = null; // Cleanup jab interview khatam ho
+    //     };
+    // }, []);
+
+    useEffect(() => {
+        // Force reload if user goes back
+        window.onbeforeunload = () => {
+            return "Interview chal raha hai, sure ho exit karna chahte ho?";
+        };
+        
+        return () => {
+            window.onbeforeunload = null;
+        };
+    }, []);
+
+
+    
     return (
 
         // ye main div hai full screen mode waala
