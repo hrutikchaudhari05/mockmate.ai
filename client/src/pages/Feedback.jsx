@@ -69,7 +69,7 @@ const Feedback = () => {
                     </p>
                     
                     {/* Overall Score Card */}
-                    <Card className="bg-slate-900 border-slate-800 mb-8 mx-48">
+                    <Card className="bg-slate-900 border-slate-800 mb-8 mx-72">
                         <CardHeader className="items-center">
                             <CardTitle className="flex text-2xl items-center gap-2 text-slate-300">
                                 <TrendingUp size={24} className="text-indigo-600 mt-[3px]" />
@@ -91,7 +91,7 @@ const Feedback = () => {
                     </Card>
 
                     {/* Summary */}
-                    <Card className="bg-slate-900 border-slate-800 mb-8 mx-24 ">
+                    <Card className="bg-slate-900 border-slate-800 mb-8 mx-40 ">
                         <CardHeader className="items-center">
                             <CardTitle className="flex text-2xl items-center gap-2 text-slate-300">
                                 <MessageSquareText size={24} className="text-indigo-600 items-center mt-[3px]" />
@@ -105,7 +105,7 @@ const Feedback = () => {
                         </CardContent>
                     </Card>
 
-                    <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 bg-slate-900 mx-6 mb-8 p-4 rounded-md border border-slate-800'>
+                    <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 bg-slate-900 mx-40 mb-8 p-4 rounded-md border border-slate-800'>
                         {/* Areas of Improvement */}
                         <Card className=" bg-slate-900 border-slate-800">
                             <CardHeader>
@@ -160,7 +160,7 @@ const Feedback = () => {
                     </div>
 
                     {/* Question-wise Analysis */}
-                    <Card className="bg-slate-900 border-slate-800 mb-8 mx-6">
+                    <Card className="bg-slate-900 border-slate-800 mb-8 mx-32">
                         <CardHeader>
                             <CardTitle className="text-center text-3xl font-medium text-indigo-600 mb-2">Question-wise Analysis</CardTitle>
                         </CardHeader>

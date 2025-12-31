@@ -2,7 +2,7 @@ import React from 'react';
 
 import {Link, NavLink, useLocation} from 'react-router-dom';
 
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // shadcn imports 
 import {
@@ -31,11 +31,16 @@ const Layout = ({children}) => {
             {/* yaha navbar aayega - top fixed*/}
 
             {/* Overall navbar container */}
-            <nav className='fixed top-0 left-0 right-0 bg-slate-900 border-b border-slate-800 z-50'>   
+            <nav 
+                className='fixed top-0 left-0 right-0 
+                bg-indigo-950/20 backdrop-blur-md z-50
+                border-b border-indigo-900/40
+                shadow-[0_1px_12px_rgba(0,0,0,0.4)]'
+            >   
                 {/* Content width kee limit aur padding  */}
-                <div className='mx-auto px-4 sm:px-6 lg:px-8 w-full '>
+                <div className=' w-full'>
                     {/* Flex Layout */}
-                    <div className='flex justify-between items-center h-16'>
+                    <div className='flex justify-between items-center h-16 px-28'>
 
                         {/* Left - Branding logo  */}
                         <div className="flex items-center">
@@ -50,40 +55,58 @@ const Layout = ({children}) => {
                         <div className='flex items-center space-x-6'>
 
                             {/* Dashboard Link  */}
-                            <Link 
+                            <NavLink 
                                 to="/dashboard" 
-                                className='text-slate-300 hover:text-white transition-colors font-medium'
+                                className={({ isActive }) =>
+                                    `font-medium transition-colors ${
+                                    isActive
+                                        ? "text-white border-b-2 border-amber-500 pb-1"
+                                        : "text-slate-300 hover:text-white"
+                                    }`
+                                }
                             >
                                 Dashboard
-                            </Link>
+                            </NavLink>
 
                             {/* Interviews Link */}
-                            <Link 
+                            <NavLink 
                                 to="/interviews" 
-                                className="text-slate-300 hover:text-white transition-colors font-medium"
+                                className={({ isActive }) =>
+                                    `font-medium transition-colors ${
+                                    isActive
+                                        ? "text-white border-b-2 border-amber-400 pb-1"
+                                        : "text-slate-300 hover:text-white"
+                                    }`
+                                }
                             >
                                 Interviews
-                            </Link>
+                            </NavLink>
                             
                             {/* Guide Link */}
-                            <Link 
+                            <NavLink 
                                 to="/guide" 
-                                className="text-slate-300 hover:text-white transition-colors font-medium"
+                                className={({ isActive }) =>
+                                    `font-medium transition-colors ${
+                                    isActive
+                                        ? "text-white border-b-2 border-amber-400 pb-1"
+                                        : "text-slate-300 hover:text-white"
+                                    }`
+                                }
                             >
                                 Guide
-                            </Link>
+                            </NavLink>
                         </div>
 
                         {/* Right -  Profile  */}
-                        <div className='flex items-center space-x-3'>
+                        <div className='flex items-center space-x-4'>
 
                             {/* User's Name */}
-                            <span className='text-slate-300 font-medium'>
-                                <u>{username}</u>
+                            <span className='text-slate-300 font-medium hover:text-white transition-colors'>
+                                {username}
                             </span>
 
                             {/* Shadcn Dropdown Integration */}
-                            <DropdownMenu>
+                            <DropdownMenu modal={false}>
 
                                 {/* Trigger jo user ko dikhega - icon */}
                                 <DropdownMenuTrigger asChild>
@@ -93,24 +116,34 @@ const Layout = ({children}) => {
                                     </button>
                                 </DropdownMenuTrigger>
 
-                                {/* CONTENT - Jo click pe dikhega */}
-                                <DropdownMenuContent
-                                    align="end" 
-                                    className="w-48 bg-slate-800 border border-slate-700"
-                                >
-                                    <DropdownMenuItem className="text-slate-300 hover:bg-slate-700 cursor-pointer">
-                                        <User size={16} className='mr-2'/>
-                                        Profile
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem className="text-slate-300 hover:bg-slate-700 cursor-pointer">
-                                        <Settings size={16} className='mr-2'/>
-                                        Settings
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem className="text-slate-300 hover:bg-slate-700 cursor-pointer">
-                                        <LogOut size={16} className='mr-2'/>
-                                        LogOut
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
+                                <AnimatePresence>
+                                    {/* CONTENT - Jo click pe dikhega */}
+                                    <DropdownMenuContent
+                                        asChild
+                                        align="end" 
+                                    >
+                                        <motion.div
+                                            initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                                            exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                                            transition={{ duration: 0.15, ease: "easeOut" }}
+                                            className="w-48 bg-slate-900 border backdrop-blur-sm border-indigo-900 rounded-md"
+                                        >
+                                            <DropdownMenuItem className="text-slate-300 hover:text-white border-b rounded-none border-slate-700 focus:text-white hover:bg-indigo-950/50 focus:bg-indigo-950 cursor-pointer">
+                                                <User size={16} className='mr-2'/>
+                                                Profile
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem className="text-slate-300 hover:text-white border-b rounded-none border-slate-700 focus:text-white hover:bg-indigo-950/50 focus:bg-indigo-950 cursor-pointer">
+                                                <Settings size={16} className='mr-2'/>
+                                                Settings
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem className="text-slate-300 hover:text-white focus:text-white hover:bg-indigo-950/50 focus:bg-indigo-950 cursor-pointer">
+                                                <LogOut size={16} className='mr-2'/>
+                                                LogOut
+                                            </DropdownMenuItem>
+                                        </motion.div>
+                                    </DropdownMenuContent>
+                                </AnimatePresence>
 
                             </DropdownMenu>
 

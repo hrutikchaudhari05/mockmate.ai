@@ -35,7 +35,7 @@ const Interviews = () => {
             initial={{ y: 18, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className='container mx-auto px-4 py-8'
+            className='container mx-auto px-28 py-8'
         >
             <Card className="bg-slate-900 border-slate-800">
                 <CardHeader>
