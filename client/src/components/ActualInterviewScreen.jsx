@@ -140,8 +140,6 @@ const ActualInterviewScreen = ({ stream }) => {
     // 2 - stop recording 
     const handleStopRecording = useCallback(() => {
 
-        
-
         // 1. recording close karna padega 
         if (mediaRecorderRef.current && isRecording) {
             console.log("Recording stopped after interview ended!")
@@ -411,6 +409,15 @@ const ActualInterviewScreen = ({ stream }) => {
         };
     }, []);
 
+    useEffect(() => {
+        if (latestBlobRef.current && !isRecording) {
+            const timer = setTimeout(() => {
+                latestBlobRef.current = null;
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [latestBlobRef.current, isRecording]);
+
 
     
     return (
@@ -444,6 +451,7 @@ const ActualInterviewScreen = ({ stream }) => {
                     <Button 
                         variant="destructive"
                         onClick={handleEndInterview}
+                        disabled={isLoading || isConverting}
                     >
                         End Interview
                     </Button>
@@ -520,7 +528,7 @@ const ActualInterviewScreen = ({ stream }) => {
 
                             {/* NEXT BUTTON */}
                             <Button
-                                disabled={isLoading}
+                                disabled={isLoading || isConverting}
                                 onClick={handleSubmit}
                             >
                                 {currQueIndex >= currentInterview?.questions.length - 1 
