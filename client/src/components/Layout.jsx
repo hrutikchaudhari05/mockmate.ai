@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import {Link, NavLink, useLocation} from 'react-router-dom';
 
 import { motion, AnimatePresence } from 'framer-motion';
+
+// Redux imports
+import { useDispatch, useNavigate } from 'react-redux';
+import { logout } from '@/store/authSlice';
 
 // shadcn imports 
 import {
@@ -16,19 +20,40 @@ import {
 import { LogOut, Settings, User } from 'lucide-react';
 import { useSelector } from 'react-redux';
 
-// redux imports 
 
 // Ye hamara main layout hoga - har page pe same rahega
 const Layout = ({children}) => {
+    const [loggingOut, setLoggingOut] = useState(false);
+
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        setLoggingOut(true);
+        dispatch(logout());
+        setTimeout(() => navigate('/login'), 1000);
+    }
 
     const location = useLocation();
     const currentUser = useSelector(state => state.auth);
     const username = currentUser?.user?.name;
 
+
     return (
         <div className="min-h-screen bg-slate-950">
 
             {/* yaha navbar aayega - top fixed*/}
+
+            {loggingOut && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950">
+                    <div className="text-center">
+                        <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                        <p className="text-slate-400">Logging out...</p>
+                    </div>
+                </div>
+            )}
+
+
 
             {/* Overall navbar container */}
             <nav 
@@ -137,7 +162,10 @@ const Layout = ({children}) => {
                                                 <Settings size={16} className='mr-2'/>
                                                 Settings
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem className="text-slate-300 hover:text-white focus:text-white hover:bg-indigo-950/50 focus:bg-indigo-950 cursor-pointer">
+                                            <DropdownMenuItem
+                                                className="text-slate-300 hover:text-white focus:text-white hover:bg-indigo-950/50 focus:bg-indigo-950 cursor-pointer"
+                                                onClick={handleLogout}
+                                            >
                                                 <LogOut size={16} className='mr-2'/>
                                                 LogOut
                                             </DropdownMenuItem>

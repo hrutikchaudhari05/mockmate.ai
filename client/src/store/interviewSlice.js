@@ -261,26 +261,7 @@ const interviewSlice = createSlice({
     initialState,
     reducers: {
 
-        // actions
-
-        // this is an alternative of thunk actions
-        // createInterview: (state, action) => {   // redux me update karta hai, and localStorage me bhi update karta hai
-        //     state.currentInterview = action.payload;    // interviewSata store karo
-        //     localStorage.setItem('mockmate_interview', JSON.stringify(action.payload)); // ab refresh pr bhi data rahega
-        // },
-
-        endInterview: (state) => {
-            console.log('Interview ended');
-            state.currentInterview = null;
-        },
-
-        // nextQuestion: (state) => {
-        //     if (state.currentInterview) {
-        //         state.currentInterview.currentQuestionIndex += 1;
-        //         // localstorage me bhi update karna padega
-        //         localStorage.setItem('mockmate_interview', JSON.stringify(state.currentInterview));
-        //     }
-        // }
+        
 
     },
     extraReducers: (builder) => {
