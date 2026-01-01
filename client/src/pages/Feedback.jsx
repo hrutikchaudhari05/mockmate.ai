@@ -268,7 +268,7 @@ const Feedback = () => {
                         </Button>
                         
                         <Button className="border-slate-700 text-indigo-600 bg-slate-900 font-bold hover:bg-slate-950 hover:border hover:border-indigo-700"
-                        onClick={() => navigate("/dashboard")}>
+                            onClick={() => navigate("/dashboard")}>
                             Back to Dashboard
                         </Button>
                     </div>

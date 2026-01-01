@@ -1,175 +1,155 @@
-import React from 'react';
-import { useRef } from 'react';
+import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Mic, Brain, Target, Clock } from 'lucide-react';
-
+import { Mic, Brain, Target, Clock, BarChart3, Layers } from 'lucide-react';
 
 const Landing = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const exploreSectionRef = useRef(null);
 
-    const exploreSectionRef = useRef(null);
+  const scrollToExplore = () => {
+    exploreSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
-    const scrollToExplore = () => {
-        exploreSectionRef.current?.scrollIntoView({
-            behaviour: 'smooth'
-        });
-    };
+  return (
+    <div className="min-h-screen px-28 bg-gradient-to-br from-black via-indigo-950 to-black text-white">
 
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-950 to-indigo-950 text-white">
-            
-            {/* Hero Section */}
-            <div className="container mx-auto px-6 py-20 text-center">
-                
-                {/* Logo/Title */}
-                <h1 className="text-5xl font-bold mb-6">
-                    Mock<span className="text-indigo-400">Mate</span>
-                </h1>
-                
-                {/* Tagline */}
-                <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
-                    AI-powered mock interviews to ace your next job interview
-                </p>
-                
-                {/* CTA Buttons */}
-                <div className="flex gap-4 justify-center">
-                    <Button 
-                        size="lg"
-                        className="bg-indigo-600 hover:bg-indigo-800 text-slate-200"
-                        onClick={() => navigate('/login')}
-                    >
-                        Get Started
-                    </Button>
-                    <Button 
-                        className="border-slate-800 border text-indigo-600 bg-slate-900 font-bold hover:bg-slate-950 hover:border hover:border-indigo-700"
-                        size="lg"
-                        onClick={scrollToExplore}
-                    >
-                            Explore
-                    </Button>
-                </div>
-                
-            </div>
+      {/* HERO */}
+      <section className="container mx-auto px-6 sm:px-10 lg:px-16 xl:px-24 py-20 text-center">
+        <h1 className="text-4xl sm:text-5xl font-bold mb-6">
+          Mock<span className="text-indigo-400">Mate</span>
+        </h1>
 
-            {/* Features Section */}
-            <div className="container mx-auto px-6 py-16">
-                <h2 className="text-3xl font-bold text-center mb-12">
-                    Why Choose MockMate?
-                </h2>
-                
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-                    <div className="text-center p-6 bg-slate-900/50 rounded-xl">
-                        <Mic className="w-12 h-12 text-indigo-500 mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold mb-2">AI-Powered</h3>
-                        <p className="text-slate-400">Real-time feedback from advanced AI</p>
-                    </div>
-                    
-                    <div className="text-center p-6 bg-slate-900/50 rounded-xl">
-                        <Target className="w-12 h-12 text-indigo-500 mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold mb-2">Customizable</h3>
-                        <p className="text-slate-400">Tailor interviews to your target role</p>
-                    </div>
+        <p className="text-lg sm:text-xl text-slate-300 mb-8 max-w-3xl mx-auto">
+          A realistic AI-powered mock interview platform that simulates real interview pressure,
+          evaluates your answers deeply, and tells you exactly where you stand.
+        </p>
 
-                    <div className="text-center p-6 bg-slate-900/50 rounded-xl">
-                        <Mic className="w-12 h-12 text-indigo-500 mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold mb-2">AI-Powered</h3>
-                        <p className="text-slate-400">Real-time feedback from advanced AI</p>
-                    </div>
-                    
-                    <div className="text-center p-6 bg-slate-900/50 rounded-xl">
-                        <Target className="w-12 h-12 text-indigo-500 mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold mb-2">Customizable</h3>
-                        <p className="text-slate-400">Tailor interviews to your target role</p>
-                    </div>
-                    
-                    
-                </div>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Button
+            size="lg"
+            className="bg-indigo-600 hover:bg-indigo-800 border border-slate-800"
+            onClick={() => navigate('/login')}
+          >
+            Start Mock Interview
+          </Button>
 
-                {/* Section with ref */}
-                <div ref={exploreSectionRef} id="explore-section">
-                    {/* Content */}
-                    <h2 className="text-3xl font-bold text-center mb-12 text-white">
-                        Master Your Interview in 4 Simple Steps
-                    </h2>
-                    
-                    <div className="max-w-4xl mx-auto space-y-8">
-                        
-                        {/* STEP 1 */}
-                        <div className="bg-gradient-to-r from-slate-950 to-slate-900 p-8 rounded-xl border border-slate-700">
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="bg-indigo-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold">1</div>
-                                <h3 className="text-2xl font-bold text-indigo-300">Choose Your Battlefield</h3>
-                            </div>
-                            <ul className="space-y-3 text-slate-300 ml-14">
-                                <li className="flex items-center gap-2"><span className="text-amber-400">→</span> <span className="font-medium">Role:</span> Frontend, Backend, Full-Stack, DevOps</li>
-                                <li className="flex items-center gap-2"><span className="text-amber-400">→</span> <span className="font-medium">Tech Stack:</span> React, Node.js, Python, System Design</li>
-                                <li className="flex items-center gap-2"><span className="text-amber-400">→</span> <span className="font-medium">Duration:</span> 15 to 45 minutes</li>
-                            </ul>
-                        </div>
-
-                        {/* STEP 2 */}
-                        <div className="bg-gradient-to-r from-slate-950 to-slate-900 p-8 rounded-xl border border-slate-700">
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="bg-indigo-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold">2</div>
-                                <h3 className="text-2xl font-bold text-indigo-300">Showcase Your Skills</h3>
-                            </div>
-                            <div className="grid md:grid-cols-2 gap-6 ml-14">
-                                <div className="space-y-3">
-                                    <h4 className="text-amber-400 font-semibold">🎤 Voice Answer</h4>
-                                    <p className="text-slate-300">Record your thoughts naturally (3 attempts per question)</p>
-                                    <p className="text-xs text-slate-500">Auto-converts to text with AI transcription</p>
-                                </div>
-                                <div className="space-y-3">
-                                    <h4 className="text-amber-400 font-semibold">⌨️ Type Answer</h4>
-                                    <p className="text-slate-300">Use code editor with syntax highlighting</p>
-                                    <p className="text-xs text-slate-500">Write pseudocode or detailed explanations</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* STEP 3 */}
-                        <div className="bg-gradient-to-r from-slate-950 to-slate-900 p-8 rounded-xl border border-slate-700">
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="bg-indigo-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold">3</div>
-                                <h3 className="text-2xl font-bold text-indigo-300">Real-Time Performance Tracking</h3>
-                            </div>
-                            <ul className="space-y-3 text-slate-300 ml-14">
-                                <li className="flex items-center gap-2"><span className="text-amber-400">●</span> <span className="font-medium">Live Timer:</span> Simulates real interview pressure</li>
-                                <li className="flex items-center gap-2"><span className="text-amber-400">●</span> <span className="font-medium">Progress Bar:</span> Track completed questions</li>
-                                <li className="flex items-center gap-2"><span className="text-amber-400">●</span> <span className="font-medium">Attempt Counter:</span> Voice recording limits (3/question)</li>
-                            </ul>
-                        </div>
-
-                        {/* STEP 4 */}
-                        <div className="bg-gradient-to-r from-slate-950 to-slate-900 p-8 rounded-xl border border-slate-700">
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="bg-indigo-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold">4</div>
-                                <h3 className="text-2xl font-bold text-indigo-300">Get AI-Powered Feedback</h3>
-                            </div>
-                            <div className="grid md:grid-cols-3 gap-6 ml-14">
-                                <div className="space-y-2">
-                                    <h4 className="text-amber-400 font-semibold">📊 Technical Accuracy</h4>
-                                    <p className="text-sm text-slate-300">Code correctness & best practices</p>
-                                </div>
-                                <div className="space-y-2">
-                                    <h4 className="text-amber-400 font-semibold">🗣️ Communication Score</h4>
-                                    <p className="text-sm text-slate-300">Clarity, structure & explanation quality</p>
-                                </div>
-                                <div className="space-y-2">
-                                    <h4 className="text-amber-400 font-semibold">📈 Improvement Tips</h4>
-                                    <p className="text-sm text-slate-300">Personalized actionable insights</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        
-                    </div>
-                </div>
-            </div>
+          <Button
+            size="lg"
+            // variant="outline"
+            className="border-slate-950 border text-indigo-600 bg-slate-900 font-bold hover:bg-slate-950 hover:border hover:border-indigo-700"
+            onClick={scrollToExplore}
+          >
+            Explore How It Works
+          </Button>
         </div>
-    );
+      </section>
+
+      {/* FEATURES */}
+      <section className="container mx-auto px-4 sm:px-6 py-16">
+        <h2 className="text-3xl font-bold text-center mb-12">
+          Why Makes MockMate Different?
+        </h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <Feature icon={Brain} title="Context-Aware AI Interviews"
+            desc="Questions are generated using role, experience, job description, interview focus, and target companies."
+          />
+          <Feature icon={Mic} title="Voice + Text Answering"
+            desc="Answer naturally using voice (with transcript) or type structured responses. Voice attempts limited to simulate pressure."
+          />
+          <Feature icon={Clock} title="Real Interview Pressure"
+            desc="Full-screen mode, live timer, limited retries, and auto-end when time runs out."
+          />
+          <Feature icon={Layers} title="Supports All Interview Types"
+            desc="Technical, HR, managerial, finance, product, and more across intern to senior levels."
+          />
+          <Feature icon={BarChart3} title="Deep AI Evaluation"
+            desc="Overall feedback + question-wise analysis including score, strengths, gaps, and ideal answers."
+          />
+          <Feature icon={Target} title="Fitment & Recommendation"
+            desc="AI analyzes how suitable you are for the role and gives hiring-level recommendations."
+          />
+        </div>
+      </section>
+
+      {/* STEPS */}
+      <section ref={exploreSectionRef} className="container mx-auto px-4 sm:px-6 py-16">
+        <h2 className="text-3xl font-bold text-center mb-12">
+          Your Interview Journey
+        </h2>
+
+        <div className="max-w-5xl mx-auto space-y-8">
+          <Step step="1" title="Configure Your Interview" points={[
+            'Any role: Software Engineer, Finance Manager, HR, etc.',
+            'Interview type: Tech, HR, Managerial',
+            'Experience level & duration',
+            'Job description, interview focus & target companies',
+          ]} />
+
+          <Step step="2" title="Answer Under Real Conditions" points={[
+            'Full-screen interview environment',
+            'Type answers or record voice',
+            'Maximum 3 voice attempts per question',
+          ]} />
+
+          <Step step="3" title="Interview Evaluation" points={[
+            'Overall score & hiring recommendation',
+            'Strengths & improvement areas',
+            'Question-wise scores, feedback & ideal answers',
+          ]} />
+
+          <Step step="4" title="Improve with Clarity" points={[
+            'Understand exactly where you failed',
+            'What to improve for your target companies',
+            'Practice again with smarter focus',
+          ]} />
+        </div>
+      </section>
+    </div>
+  );
 };
+
+const Feature = ({ icon: Icon, title, desc }) => (
+  <div className="
+    p-8 rounded-xl text-center
+    bg-slate-900/70
+    border border-slate-800
+    backdrop-blur-sm
+    shadow-[0_0_20px_rgba(99,102,241,0.18)]
+  ">
+    <div className="flex flex-col items-center mb-3">
+      <Icon size={32} className="text-indigo-400/90" />
+      {/* amber micro-accent */}
+      <div className="w-6 h-[2px] mt-2 bg-amber-500/80 rounded-full" />
+    </div>
+
+    <h3 className="text-xl font-semibold mb-2">{title}</h3>
+    <p className="text-slate-400 text-sm">{desc}</p>
+  </div>
+);
+
+const Step = ({ step, title, points }) => (
+  <div className="p-6 sm:p-8 bg-slate-900/50 rounded-xl border border-slate-700 backdrop-blur-sm">
+    <div className="flex items-center gap-4 mb-4">
+      <div className="
+        w-10 h-10 rounded-full
+        bg-indigo-600/80
+        flex items-center justify-center font-bold
+        ring-2 ring-amber-400/70
+      ">
+        {step}
+      </div>
+      <h3 className="text-2xl font-bold text-indigo-300">{title}</h3>
+    </div>
+
+    <ul className="ml-14 space-y-2 text-slate-300 list-disc">
+      {points.map((p, i) => (
+        <li key={i}>{p}</li>
+      ))}
+    </ul>
+  </div>
+);
 
 export default Landing;
