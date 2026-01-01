@@ -6,9 +6,9 @@ import { Textarea } from './ui/textarea';
 // import useSelector for getting data from redux 
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
-import { fetchInterviewById, submitAnswer, getTranscriptT, evaluateInverview } from '@/store/interviewSlice';
+import { fetchInterviewById, submitAnswer, getTranscriptT, evaluateInverview, clearMediaStream } from '@/store/interviewSlice';
 
-const ActualInterviewScreen = ({ stream }) => {
+const ActualInterviewScreen = () => {
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -16,7 +16,7 @@ const ActualInterviewScreen = ({ stream }) => {
     const {interviewId} = useParams();
 
     // ALL Redux data needed
-    const { currentInterview } = useSelector((state) => state.interview);
+    const { currentInterview, mediaStream } = useSelector((state) => state.interview);
     const { user } = useSelector(state => state.auth);
     const userId = user?._id;
     const interviewDuration = currentInterview?.duration;
@@ -59,7 +59,7 @@ const ActualInterviewScreen = ({ stream }) => {
     // 1 - handle start recording 
     const handleStartRecording = async () => {
         // agar stream object nhi hai to record mt karo - permissions nhi hai 
-        if (!stream) {
+        if (!mediaStream) {
             console.log("Stream is not present");
             return;
         }
@@ -68,7 +68,7 @@ const ActualInterviewScreen = ({ stream }) => {
 
         // 1. initialize mediaRecorder
         // naya MediaRecorder banaya
-        mediaRecorderRef.current = new MediaRecorder(stream, {
+        mediaRecorderRef.current = new MediaRecorder(mediaStream, {
             mimeType: 'audio/webm'
         });     // iske notes niche likhe hai
 
@@ -179,7 +179,14 @@ const ActualInterviewScreen = ({ stream }) => {
         setIsConverting(false);
         setAttempts(0);
 
-        // 0. pehle currQueIndex valid hai yaa nhi wo check karo 
+        // pehle loading on 
+        setIsLoading(true);
+        // baadme: transcript + audio + questionId backend ko send karna padega 
+
+        // checking is currQueIndex is the last index 
+        const isLastQuestion = currQueIndex >= currentInterview.questions.length - 1;
+
+
         if (currQueIndex >= currentInterview.questions.length - 1) {
             console.log("Interview Complete!");
             // ab auto submit karo feedback page pr 
@@ -187,37 +194,41 @@ const ActualInterviewScreen = ({ stream }) => {
             return;
         }
 
-        // 1. loading status on 
-        setIsLoading(true);
-        // baadme: transcript + audio + questionId backend ko send karna padega 
-
-        // 2. submit answer api call 
+        // 1. submit answer api call 
         const result = await dispatch(submitAnswer({
             interviewId: interviewId,
             answerText: answer,
             audioUrl: latestBlobRef.current ? 'temp_url' : ''
-
         }))
         
-        // 3. checking success 
+        // 2. checking success 
         if (submitAnswer.fulfilled.match(result)) {
-            // 4. local states ko reset karo - upar waale operations hone ke baad firse local states ko reset karna padega 
+            // local states ko reset karo - upar waale operations hone ke baad firse local states ko reset karna padega 
             setAnswer('');
             setRecordSeconds(0);
             chunksRef.current = [];
             latestBlobRef.current = null;
 
-            // 5. interviewData ko refresh karo 
-            dispatch(fetchInterviewById(interviewId));
+            // interviewData ko refresh karo 
+            await dispatch(fetchInterviewById(interviewId));
+
+            // 3. Only after success, check if last question 
+            if (isLastQuestion) {
+                console.log("Last answer submitted, now ending interview...");
+                handleEndInterview();
+                return;
+            }
         } else {
             // Error handling 
             console.error("Submit failed: ", result.error);
         }
 
-        // 6. Loading band karo 
-        setTimeout(() => {
-            setIsLoading(false);
-        }, 500);
+        // 4. Loading band karo 
+        if (!isLastQuestion) {
+            setTimeout(() => {
+                setIsLoading(false);
+            }, 500);
+        }
         
     }
 
@@ -294,8 +305,8 @@ const ActualInterviewScreen = ({ stream }) => {
     
 
     useEffect(() => {
-        console.log('Stream Prop: ', stream);
-    }, [stream])
+        console.log('Stream Prop: ', mediaStream);
+    }, [mediaStream])
 
 
     // agar user interview chhod kr dusre page pr gaya to bhi mic access active rahega, to uski wajah se following problems occur honge:
@@ -309,16 +320,16 @@ const ActualInterviewScreen = ({ stream }) => {
             console.log("Cleaning up media stream...");
 
             // check if media stream exist karta hia ya nhi 
-            if (stream) {
+            if (mediaStream) {
                 // ab media stream ke saare tracks band karne padenge 
-                stream.getTracks().forEach(track => {
+                mediaStream.getTracks().forEach(track => {
                     track.stop();   // track ek particular type ka stream hai like audio track video track
                     console.log('Mic track stopped!');
                 });
             }
 
         };
-    }, [stream]); // jb bhi mediaStream change hogi tb ye cleanup fun firse banega
+    }, [mediaStream]); // jb bhi mediaStream change hogi tb ye cleanup fun firse banega
 
     // sideEffect - timer countdown - auto submit interview when timer ends
     useEffect(() => {
@@ -514,7 +525,7 @@ const ActualInterviewScreen = ({ stream }) => {
                                 {/* START RECORDING */}
                                 <Button
                                     className="bg-indigo-600 hover:bg-indigo-700"
-                                    disabled={attempts >= 3 || isConverting}
+                                    disabled={attempts >= 3 || isConverting || isLoading}
                                     onClick={handleRecordAction}
                                 >
                                     {isRecording ? "Stop Recording" : isConverting ? 'Converting to transcript...' : `Record Voice (${attempts}/3)`}
@@ -525,7 +536,12 @@ const ActualInterviewScreen = ({ stream }) => {
                                     <span className='text-green-400 text-sm'>✓ Audio saved</span>
                                 )}
 
-                                <Button onClick={playAudio}>🔊 Test Play</Button>
+                                <Button 
+                                    onClick={playAudio}
+                                    disabled={isConverting}
+                                >
+                                    🔊 Test Play
+                                </Button>
                                 
                             </div>
 

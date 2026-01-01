@@ -353,7 +353,7 @@ const evaluateInterview = async (req, res) => {
             return {
                 ...q._doc,  // other data in schema 
                 feedbackObj: {
-                    score: feedbackObj?.score,
+                    score: (feedbackObj?.score/10).toFixed(1),
                     summary: feedbackObj?.summary,
                     strengths: feedbackObj?.strengths,
                     improvementTips: feedbackObj?.improvementTips,

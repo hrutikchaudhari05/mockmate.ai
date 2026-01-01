@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchInterviewById } from '@/store/interviewSlice';
+import { fetchInterviewById, clearMediaStream } from '@/store/interviewSlice';
 import getRecommendationColor from '@/utils/getRecommendationColor';
 
 
@@ -17,7 +17,7 @@ const Feedback = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     // const overallScore = 84; // Mock data
-    const { currentInterview, interviewLoading } = useSelector((state) => state.interview);
+    const { mediaStream, currentInterview, interviewLoading } = useSelector((state) => state.interview);
 
     // // score 
     const score = currentInterview?.overallFeedback?.score;
@@ -30,6 +30,13 @@ const Feedback = () => {
             dispatch(fetchInterviewById(interviewId));
         } 
     }, [interviewId]);
+
+    useEffect(() => {
+        if (mediaStream) {
+            mediaStream.getTracks().forEach(track => track.stop());
+            dispatch(clearMediaStream());
+        }
+    }, [mediaStream, dispatch]);
 
     if (interviewLoading) {
         return (
@@ -45,7 +52,9 @@ const Feedback = () => {
                 No feedback generated yet...!
             </div>
         )
-    }
+    };
+
+    
 
     
 

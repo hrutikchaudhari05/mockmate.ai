@@ -223,6 +223,9 @@ export const evaluateInverview = createAsyncThunk(
 
 // initial state - interview ki current status
 const initialState = {
+    // stream 
+    mediaStream: null,
+
     // single interview states
     interviewLoading: false,
     interviewError: null,
@@ -261,7 +264,16 @@ const interviewSlice = createSlice({
     initialState,
     reducers: {
 
-        
+        setMediaStream: (state, action) => {
+            state.mediaStream = action.payload;
+        },
+
+        clearMediaStream: (state) => {
+            if (state.mediaStream) {
+                state.mediaStream.getTracks().forEach(track => track.stop());
+            }
+            state.mediaStream = null;
+        }
 
     },
     extraReducers: (builder) => {
@@ -416,5 +428,5 @@ const interviewSlice = createSlice({
     }
 });
 
-export const { endInterview } = interviewSlice.actions;
+export const { setMediaStream, clearMediaStream, endInterview } = interviewSlice.actions;
 export default interviewSlice.reducer;

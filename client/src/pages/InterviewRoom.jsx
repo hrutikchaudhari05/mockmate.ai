@@ -3,7 +3,7 @@ import React, {useState, useEffect, useRef} from 'react';
 import PreInterviewScreen from '@/components/PreInterviewScreen'
 import ActualInterviewScreen from '@/components/ActualInterviewScreen';
 
-import { fetchInterviewById, generateQuestionsT } from '@/store/interviewSlice';
+import { setMediaStream, clearMediaStream, fetchInterviewById, generateQuestionsT } from '@/store/interviewSlice';
 
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -15,13 +15,15 @@ const InterviewRoom = () => {
     console.log('Interview ID: ', interviewId);
     
 
-    const [stream, setStream] = useState(null); 
+    // const [stream, setStream] = useState(null); 
     // preInterviewScreen me user media permissions dega wo store 
     // Stream Notes:
     // user ke diye huye permissions ko store karta hai, aur hum isse as a prop pass karte hai next component me, fir ye next page pr user se firse permissions nhi maagte
     // actuall ye user ko hrr page pr permissions firse naa maage isliye use hota hai 
 
-    
+    // fetch currentInterview from redux state 
+    const { mediaStream, currentInterview, interviewLoading } = useSelector(state => state.interview);
+
     // agar directly stage ko 'pre' set kiya to ek imp bug aa rha tha (jb actualInterview Page pr refresh click kiya to state firse 'pre' set ho rha thaa - usse prevent karne ke liye below code)
     const [stage, setStage] = useState(() => {
         // pehle check karna padega interview chal rha hai yaa nhi, wo check karenge -- agar localStorage me 'mockmate_interiview' item hai to state 'interview' rakho otherwise 'pre' rakho 
@@ -31,25 +33,21 @@ const InterviewRoom = () => {
 
     // ye tab hee run hoga jb stage 'interview' hai and 'stream null hai'
     useEffect(() => {
-        if (stage === 'interview' && !stream) {
+        if (stage === 'interview' && !mediaStream) {
             // agar sessionStorage me mic_permission ko granted kiya hai to hum firse ActualInterview page pr stream le sakte hai
             if (sessionStorage.getItem('mic_permission') === 'granted') {
                 // firse nayi stream lo 
                 navigator.mediaDevices.getUserMedia({ audio: true })    // ye ek promise hota hai and wo hame niche consume karna padega 
-                    .then(newStream => setStream(newStream));
+                    .then(newStream => dispatch(setMediaStream(newStream)));
                     
             } else {    
                 // sessionStorage me mic_permission ko 'granted' nhi kiya tb 
                 setStage('pre');
             }
         } 
-    }, [stream, stage]);
+    }, [mediaStream, stage]);
 
     
-
-    // fetch currentInterview from redux state 
-    const { currentInterview, interviewLoading } = useSelector(state => state.interview);
-
     // logging fetched data 
     useEffect(() => {
         if (currentInterview) {
@@ -104,7 +102,7 @@ Skills: Data, ML, DL, NLP, LLM, Transformers, Python, SQL, Vector Databases, etc
                     onStart={(audioStream) => {
                         // rendering ke beech me state updates allowed nhi hote usko rokne ke liye below code ko next rendering cycle me schedule karte hai 
                         setTimeout(() => {
-                            setStream(audioStream);
+                            dispatch(setMediaStream(audioStream));
                             setStage('interview');
                         }, 0);
                     }} 
@@ -113,8 +111,7 @@ Skills: Data, ML, DL, NLP, LLM, Transformers, Python, SQL, Vector Databases, etc
             }
 
             {stage === 'interview' && 
-                <ActualInterviewScreen 
-                    stream={stream} 
+                <ActualInterviewScreen  
                     interview={currentInterview}
                 />
             }

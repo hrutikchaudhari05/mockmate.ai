@@ -34,12 +34,25 @@ const getOverallFeedback = async (currentInterview) => {
             4. Problem-solving approach
             5. Areas of improvement
 
-            NOTE: Provide some specific strengths and improvement tips on actual answers.
+            SCORING RANGES (STRICTLY FOLLOW):
+            - 0-40: "not recommended"
+            - 41-60: "needs improvement" 
+            - 61-80: "considerable fit"
+            - 81-100: "strong fit"
 
+            IF score is 0 -> ALWAYS return "not recommended"
+
+
+            IMPORTANT RULES:
+            1. If score > 30 -> MUST provide at least 1 strength
+            2. Strength array cannot be empty if answer exists
+            3. If no answer -> strength = [] (empty)
+            4. If score < 80 -> MUST provide at least 1 improvement tip
+            
             OUTPUT FORMAT (JSON only):
             {
                 "score": 78,
-                "summary": "Overall feedback summary in 4-5 sentences",
+                "summary": "Overall feedback summary in 5-8 sentences",
                 "strengths": ["strength1", "strength2", ...],
                 "improvementTips": ["area1", "area2", ...],
                 "recommendation": "strong fit | considerable fit | needs improvement | not recommended"
@@ -88,10 +101,6 @@ const getQuestionWiseFeedback = async (currentInterview, batchQuestions, startIn
         7. depth (number of words as compared to wc): x/20
         SCORING: Give score out of 100 (not 10)
         - Calculate based on 7 factors (total 100 points)
-        - Then DIVIDE by 10 for final 0-10 score
-        - Example: 84/100 = 8.5/10
-
-        STRICTLY: All scores must be between 0-10, same scale.
 
         JOB CONTEXT:
         - Role: ${currentInterview.title} ${currentInterview.type} 
@@ -115,13 +124,29 @@ const getQuestionWiseFeedback = async (currentInterview, batchQuestions, startIn
         1. specific strengths (what they did well)
         2. improvement tips (what to work on)
 
+        CORRECT EXAMPLE:
+        {
+            "score": 84,
+            "strengths": ["Good coverage of key concepts", "Clear structure"],
+            "improvementTips": ["Add more examples"]
+        }
+
+        WRONG EXAMPLE:
+        {
+            "score": 84,
+            "strengths": [],  // ← NOT ALLOWED
+        }
+
+        STRICT: If score > 50, strengths array CANNOT be empty. Provide at least 1 specific strength.
+        Example: score = 70 → strengths = ["Good technical accuracy", "Clear structure"]
+
         OUTPUT FORMAT STRICTLY (JSON only):
         {
             "questionWiseFeedback": [
                 {
                     "feedbackObj": {
-                        "score": 8.4,
-                        "summary": "Brief evaluation summary in 2-3 lines",
+                        "score": 84,
+                        "summary": "Brief evaluation summary in 3-4 lines",
                         "strength": ["strength1", "strength2"],
                         "improvementTips": ["tip1", "tip2"],
                         "idealAnswer": "What an ideal answer would include"

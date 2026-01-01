@@ -59,8 +59,10 @@ const PreInterviewScreen = ({onStart}) => {
     const requestPermissions = async () => {
         try {
 
-            if (currentInterview.status === 'evaluated') {
+            if (interviewId && currentInterview.status === 'evaluated') {
+                alert("This interview is already evaluated!");
                 navigate(`/feedback/${interviewId}`);
+                return;
             }
             
             // audio permission req,

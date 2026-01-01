@@ -10,7 +10,7 @@ const calculateOverallScore = (interview) => {
 }
 
 const finalOverallScore = (avgScore, aiScore) => {
-    let score = (avgScore * 0.3) + (aiScore * 0.7);
+    let score = (avgScore * 0.4) + (aiScore * 0.6);
     return Math.round(score * 10) / 10;
 }
 

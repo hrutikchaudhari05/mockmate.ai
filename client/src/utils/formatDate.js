@@ -10,3 +10,4 @@ export function formatDate(isoString) {
         year: "numeric",
     });
 }
+
