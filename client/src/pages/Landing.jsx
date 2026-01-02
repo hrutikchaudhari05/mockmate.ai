@@ -13,7 +13,7 @@ const Landing = () => {
   };
 
   return (
-    <div className="min-h-screen px-28 bg-gradient-to-br from-black via-indigo-950 to-black text-white">
+    <div className="min-h-screen px-12 sm:px-18 lg:px-28 bg-gradient-to-br from-black via-indigo-950 to-black text-white">
 
       {/* HERO */}
       <section className="container mx-auto px-6 sm:px-10 lg:px-16 xl:px-24 py-20 text-center">
@@ -52,7 +52,7 @@ const Landing = () => {
           Why Makes MockMate Different?
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <Feature icon={Brain} title="Context-Aware AI Interviews"
             desc="Questions are generated using role, experience, job description, interview focus, and target companies."
           />

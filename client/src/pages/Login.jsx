@@ -57,17 +57,26 @@ const Login = () => {
 
     return (
         <div 
-            className="min-h-screen bg-gradient-to-br from-slate-950 to-indigo-950 text-white flex items-center justify-center w-full"
+            className="min-h-screen flex flex-col gap-8 bg-gradient-to-br from-black via-indigo-950 to-black text-white items-center justify-center w-full"
         >
+            <div className='flex justify-center items-center gap-3'>
+                <h3 className="text-4xl sm:text-5xl font-bold">
+                    Mock<span className="text-indigo-400">Mate</span>
+                </h3>
+            </div>
+
             <motion.div
-                className="w-full max-w-md p-8 md:p-10 bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl shadow-indigo-900/20"
+                className="w-full max-w-md sm:max-w-lg p-8 mb-8 md:p-10 bg-slate-900 rounded-3xl border border-slate-800
+                    shadow-[0_0_30px_rgba(99,102,241,0.18)]"
             >
+                
                 {/* Header section  */}
-                <header className="text-center mb-8">
+                <header className="text-center mb-6">
                     {/* Logo */}
-                    <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold mx-auto mb-3">AI</div>
+                    <div className="w-10 h-10 bg-indigo-500 rounded-lg flex items-center justify-center text-white font-bold mx-auto mb-1">AI</div>
                     {/* Title */}
-                    <h1 className="text-3xl font-bold text-slate-100">Welcome Back!</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-slate-100">Welcome Back!</h1>
+                    <div className='h-[1px] bg-amber-500/90 w-40 mx-auto mt-1 rounded-full' />
                     {/* Subtitle */}
                     <p className="text-slate-400 mt-2">Sign in to continue your interview preparation.</p>
                 </header>
@@ -76,7 +85,8 @@ const Login = () => {
                 {error?.message && <p className="text-red-400 text-center text-sm mb-4">{error?.message}</p>}
 
                 {/* form */}
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-4">
+
                     <div className="relative">
                         <Mail size={18} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-500 z-10" />
                         <Input 
@@ -85,13 +95,15 @@ const Login = () => {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             className={`pl-12 text-white bg-slate-950 
-                                ${clickedSubmit && ( errorsObj?.email || error?.field === 'email' ) ? 'border-red-400' : 'border-slate-800'}
-                                focus:border-slate-800
-                                focus-visible:ring-1 focus-visible:ring-indigo-500 focus-visible:ring-offset-0
+                                ${clickedSubmit && ( errorsObj?.email || error?.field === 'email' ) ? 'border-red-400/80' : 'border-slate-800'}
+                                focus:border-slate-800 placeholder:text-slate-500
+                                focus-visible:ring-1 focus-visible:ring-indigo-500/80 focus-visible:ring-offset-0
                             `} 
                         />
                     </div>
-                    {clickedSubmit && errorsObj.email && <p className='text-red-400 text-sm text-center mt-1'>{errorsObj.email}</p>}
+
+                    {clickedSubmit && errorsObj.email && <p className='text-red-400 text-sm text-center'>{errorsObj.email}</p>}
+                    
                     <div className="relative">
                         <Lock size={18} className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-500 z-10" />
                         <Input
@@ -100,13 +112,13 @@ const Login = () => {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             className={`pl-12 text-white bg-slate-950 
-                                ${clickedSubmit && errorsObj?.password ? 'border-red-400' : 'border-slate-800'}
-                                focus:border-slate-800
-                                focus-visible:ring-1 focus-visible:ring-indigo-500 focus-visible:ring-offset-0
+                                ${clickedSubmit && errorsObj?.password ? 'border-red-400/80' : 'border-slate-800'}
+                                focus:border-slate-800 placeholder:text-slate-500
+                                focus-visible:ring-1 focus-visible:ring-indigo-500/80 focus-visible:ring-offset-0
                             `}
                         />
                     </div>
-                    {clickedSubmit && errorsObj.password && <p className='text-red-400 text-center text-sm mt-1'>{errorsObj.password}</p>}
+                    {clickedSubmit && errorsObj.password && <p className='text-red-400 text-center text-sm'>{errorsObj.password}</p>}
 
                     
                     <motion.div
@@ -141,7 +153,7 @@ const Login = () => {
                             to="/register"
                             className="font-medium text-indigo-400 hover:text-indigo-300 transition"
                         >
-                            Register Here
+                            Register here
                         </Link>
                     </p>
                 </motion.div>

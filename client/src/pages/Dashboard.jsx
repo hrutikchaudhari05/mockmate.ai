@@ -18,20 +18,7 @@ import { fetchAllInterviews } from '@/store/interviewSlice';
 
 import { formatDate } from '@/utils/formatDate';
 
-// card forming function 
-const StatCard = ({ title, content, icon: Iconn, color}) => {
-    return (
-        <Card className="bg-slate-900 border-slate-800">
-            <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-slate-400 text-2xl">{title}</CardTitle>
-                <Iconn size={48} className={color} />
-            </CardHeader>
-            <CardContent>
-                <div className='text-3xl font-bold text-white'>{content}</div>
-            </CardContent>
-        </Card>
-    )
-}
+
 
 
 const Dashboard = () => {
@@ -72,7 +59,7 @@ const Dashboard = () => {
     return (
 
         
-        <div className='px-28 py-16 space-y-8'>
+        <div className='px-8 sm:px-16 lg:px-28 py-12 sm:py-16 space-y-8'>
 
             {/* Ye div responsible hai pure dashboard page ko blur karne ke liye */}
             <motion.div
@@ -85,15 +72,15 @@ const Dashboard = () => {
             >
 
                 <div>
-                    <h1 className='text-4xl font-bold text-white'>
+                    <h1 className='text-3xl md:text-4xl font-bold text-white'>
                         {`Welcome back, ${user?.name || 'Name'}!`}
                     </h1>
-                    <p className='text-slate-400 mt-2 text-xl'>
+                    <p className='text-slate-400 mt-2 text-lg md:text-xl'>
                         Ready to crush your next interview?
                     </p>
                 </div>
 
-                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
+                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6'>
 
                     {/* First Card  */}
                     <StatCard title="Interviews Completed" content={totalInterviews} icon={Award} color="text-amber-500/80" />
@@ -104,9 +91,9 @@ const Dashboard = () => {
                 </div>
 
                 <div className='w-full border border-slate-800 rounded-lg text-center py-6 space-y-8'>
-                    <p className='text-slate-300 font-bold text-3xl'>Ready for your next challenge?</p>
+                    <p className='text-slate-300 font-bold text-lg sm:text-xl md:text-2xl lg:text-3xl'>Ready for your next challenge?</p>
                     <Button
-                        className="bg-indigo-600 hover:bg-indigo-700 p-6 text-lg "
+                        className="bg-indigo-600 hover:bg-indigo-700 px-6 py-3 text-sm sm:text-base md:text-lg"
                         onClick={() => setShowSetup(true)}
                     >
                         <Play size={40} className='mr-3' /> 
@@ -117,13 +104,13 @@ const Dashboard = () => {
                 <div>
                     <Card className="bg-slate-900 border-slate-800">
                         <CardHeader>
-                            <CardTitle className="text-white text-center">Recent Interwiew Performances</CardTitle>
+                            <CardTitle className="text-white text-center text-xl md:text-2xl">Recent Interwiew Performances</CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="space-y-4 w-full overflow-x-auto">
                             {allInterviewsList.count <= 0 
                                 ? <p className='text-slate-200 font-semibold'>There are no interviews...!</p> 
                                 : (
-                                    <Table>
+                                    <Table className="min-w-[800px]">
                                         <TableHeader>
                                             <TableRow className="border-b bg-slate-800/40 rounded-lg">
                                                 <TableHead className="text-indigo-500">Sr. No.</TableHead>
@@ -137,7 +124,7 @@ const Dashboard = () => {
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {allInterviewsList?.allInterviews?.map((item, index) => {
+                                            {allInterviewsList?.allInterviews?.slice(0,5).map((item, index) => {
                                                 return (
                                                     <TableRow key={index} className="border-b border-slate-700 hover:bg-slate-800">
                                                         <TableCell className="font-medium text-white">{index+1}</TableCell>
@@ -178,6 +165,21 @@ const Dashboard = () => {
         
         
     );
+}
+
+// card forming function 
+const StatCard = ({ title, content, icon: Iconn, color}) => {
+    return (
+        <Card className="bg-slate-900 border-slate-800 flex flex-col justify-between">
+            <CardHeader className="flex flex-row gap-2 items-start justify-between">
+                <CardTitle className="text-slate-400 text-2xl lg:text-xl mt-1">{title}</CardTitle>
+                <Iconn size={48} className={`${color} shrink-0`} />
+            </CardHeader>
+            <CardContent>
+                <div className='text-3xl font-bold text-white'>{content}</div>
+            </CardContent>
+        </Card>
+    )
 }
 
 export default Dashboard;
