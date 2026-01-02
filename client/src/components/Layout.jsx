@@ -41,7 +41,7 @@ const Layout = ({children}) => {
 
 
     return (
-        <div className="min-h-screen bg-slate-950">
+        <div className="min-h-screen bg-gradient-to-br from-black via-indigo-950 to-black">
 
             {/* yaha navbar aayega - top fixed*/}
 

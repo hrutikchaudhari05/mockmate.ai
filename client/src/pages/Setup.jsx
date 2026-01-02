@@ -50,14 +50,6 @@ const Setup = ({onClose}) => {
     // animation ko baar baar chalane ke liye state kee need hai 
     const [shakeTick, setShakeTick] = useState(0);
 
-    // Background scroll disable karne ke liye
-    React.useEffect(() => {
-        document.body.style.overflow = 'hidden';
-        return () => {
-            document.body.style.overflow = 'unset';
-        };
-    }, []);
-
     const LIMITS = {
         title: 60,
         jobDescription: 1000,
@@ -148,11 +140,6 @@ const Setup = ({onClose}) => {
 
     };
 
-
-
-
-
-    
     return (
         <>
             {/* Backdrop/Overlay - Pure screen cover karega, Iss code ka popup ke saath kuchh lena dena nhi hai, ye bss overlay (ek screen lagata hai dashboard aur popup ke bich me) */}
@@ -173,16 +160,16 @@ const Setup = ({onClose}) => {
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Outer Div - made only for managing the H and W of box */}
-                <div className="bg-slate-950 border border-slate-700 rounded-xl w-full max-w-3xl h-full max-h-fit">
+                <div className="bg-slate-950 border border-slate-800 rounded-xl w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-3xl max-h-[90vh] overflow-y-auto mt-6 shadow-[0_0_20px_rgba(99,102,251,0.38)]">
 
                     {/* div inside outer div - responsible for padding */}
-                    <div className='px-8 py-4'>
+                    <div className='px-4 sm:px-6 md:px-8 py-4'>
 
-                        <h2 className="text-3xl font-bold text-center text-white">Customize Your Interview Options</h2>
+                        <h2 className="text-2xl md:text-3xl font-bold text-center text-white">Customize Your Interview Options</h2>
 
-                        {validation.hasError ? <p className='text-red-400 text-center text-sm mb-4 mt-2'>Please complete all required fields to continue.</p> : <p className='text-center text-slate-500 text-lg mt-2'>Setup your interview according to your requirements</p>}
+                        {validation.hasError ? <p className='text-red-400 text-center text-sm mb-4 mt-2'>Please complete all required fields to continue.</p> : <p className='text-center text-slate-400 text-lg mt-2'>Setup your interview according to your requirements</p>}
 
-                        <div className='border border-slate-800 rounded-md mt-2 mb-3'></div>
+                        <div className='h-[1px] bg-amber-500/90 w-full mx-auto mt-2 mb-3 rounded-full' />
 
                         {/* Yahan tera form aayega */}
                         <form onSubmit={handleStartInterview} className="space-y-3 text-white mb-2">
@@ -191,16 +178,16 @@ const Setup = ({onClose}) => {
                             <motion.div
                                 key={`title-${shakeTick}`}
                                 animate={animationControls('title')}
-                                className={`border rounded-md border-slate-700 flex flex-row items-center cursor-pointer py-1`}
+                                className={`border rounded-md border-slate-700 flex md:flex-row items-center cursor-pointer py-1`}
                             >
-                                <p className='text-lg flex flex-row items-center justify-center text-slate-400 w-1/2 gap-2'>
+                                <p className='text-sm md:text-md lg:text-lg flex flex-row items-center justify-center text-slate-400 w-1/2 gap-2 px-2'>
                                     Job Title
                                     {validation?.emptyFields?.title && (
-                                        <AlertCircle size={16} className='text-red-400' />
+                                        <AlertCircle size={16} className='text-red-400 shrink-0' />
                                     )}
                                 </p>
                                 <Input 
-                                    className={`bg-transparent border-0 border-l rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 text-2xl text-center placeholder:text-slate-500 border-slate-500`} 
+                                    className={`bg-transparent border-0 border-l rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 text-sm md:text-md text-center placeholder:text-slate-500 border-slate-500`} 
                                     placeholder="e.g. Software Developer II"
                                     maxLength={60}
                                     value={formData.title}
@@ -214,10 +201,10 @@ const Setup = ({onClose}) => {
                                 animate={animationControls('type')}
                                 className='border rounded-md border-slate-700 flex flex-row items-center cursor-pointer py-1'
                             >
-                                <p className='text-lg flex items-center justify-center text-slate-400 w-1/2 gap-2'>
+                                <p className='text-sm md:text-md lg:text-lg flex items-center justify-center text-slate-400 w-1/2 gap-2 px-2'>
                                     Interview Type
                                     {validation?.emptyFields?.type && (
-                                        <AlertCircle size={16} className='text-red-400' />
+                                        <AlertCircle size={16} className='text-red-400 shrink-0' />
                                     )}
                                 </p>
                                 
@@ -267,10 +254,10 @@ const Setup = ({onClose}) => {
                                 animate={animationControls('experience')}
                                 className='border rounded-md border-slate-700 flex flex-row items-center cursor-pointer py-1'
                             >
-                                <p className='text-lg flex items-center justify-center text-slate-400 w-1/2 gap-2'>
+                                <p className='text-sm md:text-md lg:text-lg flex items-center justify-center text-slate-400 w-1/2 gap-2 px-2'>
                                     Experience Level
                                     {validation?.emptyFields?.experience && (
-                                        <AlertCircle size={16} className='text-red-400' />
+                                        <AlertCircle size={16} className='text-red-400 shrink-0' />
                                     )}
                                 </p>
                                 
@@ -338,10 +325,10 @@ const Setup = ({onClose}) => {
                                 animate={animationControls('duration')}
                                 className='border rounded-md border-slate-700 flex flex-row items-center cursor-pointer py-1'
                             >
-                                <p className='text-lg flex items-center justify-center text-slate-400 w-1/2 gap-2'>
+                                <p className='text-sm md:text-md lg:text-lg flex items-center justify-center text-slate-400 w-1/2 gap-2 px-2'>
                                     Duration
                                     {validation?.emptyFields?.duration && (
-                                        <AlertCircle size={16} className='text-red-400' />
+                                        <AlertCircle size={16} className='text-red-400 shrink-0' />
                                     )}
                                 </p>
                                 
@@ -401,17 +388,17 @@ const Setup = ({onClose}) => {
                                 animate={animationControls('jobDescription')}
                                 className='border relative w-full rounded-md border-slate-700 flex flex-row items-center cursor-pointer py-1'
                             >
-                                <p className='text-lg flex items-center justify-center text-slate-400 w-1/2 gap-2'>
+                                <p className='text-sm md:text-md lg:text-lg flex items-center justify-center text-slate-400 w-1/2 gap-2 px-2'>
                                     Job Description / Skills
                                     {validation?.emptyFields?.jobDescription && (
-                                        <AlertCircle size={16} className='text-red-400' />
+                                        <AlertCircle size={16} className='text-red-400 shrink-0' />
                                     )}
                                 </p>
                                 
                                 <Textarea 
                                     placeholder="Paste job description OR key skills (React, Node.js, AWS...) here..."
                                     className="
-                                        bg-transparent
+                                        bg-transparent text-sm md:text-md 
                                         border-0 border-l rounded-none border-slate-500 resize-none text-center overflow-hidden focus:ring-0 focus:ring-offset-0 
                                         placeholder:text-center px-2 w-full text-white placeholder:text-slate-500 py-3 no-scrollbar"
                                     style={{
@@ -421,7 +408,7 @@ const Setup = ({onClose}) => {
                                         maxHeight: '200px',
                                         overflowY: 'auto', 
                                     }}
-                                    maxLength={100}
+                                    maxLength={1000}
                                     value={formData.jobDescription}
                                     onChange={(e) => handleChange('jobDescription', e.target.value)}
                                 />
@@ -439,15 +426,15 @@ const Setup = ({onClose}) => {
                                 animate={animationControls('targetCompanies')}
                                 className='border rounded-md border-slate-700 flex flex-row items-center cursor-pointer py-1'
                             >
-                                <p className='text-lg flex items-center justify-center text-slate-400 w-1/2 gap-2'>
+                                <p className='text-sm md:text-md lg:text-lg flex items-center justify-center text-slate-400 w-1/2 gap-2  px-2'>
                                     Targeted Companies
                                     {validation?.emptyFields?.targetCompanies && (
-                                        <AlertCircle size={16} className='text-red-400' />
+                                        <AlertCircle size={16} className='text-red-400 shrink-0' />
                                     )}
                                 </p>
                                 
                                 <Input 
-                                    className="bg-transparent border-0 border-l rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 text-2xl text-center placeholder:text-slate-500 border-slate-500" 
+                                    className="bg-transparent border-0 border-l rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 text-sm md:text-md text-center placeholder:text-slate-500 border-slate-500" 
                                     placeholder="e.g. Google, Microsoft, Perplexity..."
                                     maxLength={120}
                                     value={formData.targetCompanies}
@@ -462,15 +449,15 @@ const Setup = ({onClose}) => {
                                 animate={animationControls('interviewContext')}
                                 className='border rounded-md border-slate-700 flex flex-row items-center cursor-pointer py-1'
                             >
-                                <p className='text-lg flex items-center justify-center text-slate-400 w-1/2 gap-2'>
+                                <p className='text-sm md:text-md lg:text-lg flex items-center justify-center text-slate-400 w-1/2 gap-2 px-2'>
                                     Interview Context
                                     {validation?.emptyFields?.interviewContext && (
-                                        <AlertCircle size={16} className='text-red-400' />
+                                        <AlertCircle size={16} className='text-red-400 shrink-0' />
                                     )}
                                 </p>
                                 
                                 <Input 
-                                    className="bg-transparent border-0 border-l rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 text-2xl text-center placeholder:text-slate-500 border-slate-500" 
+                                    className="bg-transparent border-0 border-l rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 text-sm md:text-md text-center placeholder:text-slate-500 border-slate-500" 
                                     placeholder="e.g. ask only DSA questions, give ratings out of 10..."
                                     maxLength={300}
                                     value={formData.interviewContext}
@@ -481,11 +468,11 @@ const Setup = ({onClose}) => {
 
                             {/* Upload Resume File Section */}
                             <div className='border rounded-md border-slate-700 flex flex-row items-center cursor-pointer py-1'>
-                                <p className='text-lg flex items-center justify-center text-slate-400 w-1/2'>Upload Resume</p>
+                                <p className='text-sm md:text-md lg:text-lg flex items-center justify-center text-slate-400 w-1/2 gap-2 px-2'>Upload Resume</p>
                                 <Input 
                                     type="file"
                                     accept=".pdf, .doc, .docx" 
-                                    className="bg-transparent border-0 border-l rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 text-2xl text-center placeholder:text-slate-500 border-slate-500 file:text-white file:bg-indigo-700 file:rounded" 
+                                    className="bg-transparent border-0 border-l rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 text-sm md:text-md text-center placeholder:text-slate-500 border-slate-500 file:text-black file:bg-indigo-700 file:rounded" 
                                     onChange={(e) => setFormData({...formData, resume: e.target.files[0]})}
                                 />
                             </div>
@@ -496,16 +483,16 @@ const Setup = ({onClose}) => {
 
                                 {/* <Input type="file" className="bg-slate-800 flex items-center justify-center border-0  focus-visible:ring-0 focus-visible:ring-offset-0 text-2xl text-center placeholder:text-slate-500 border-slate-500 file:text-white file:font-light file:bg-indigo-700 file:px-2 file:rounded w-3/5" /> */}
 
-                                <div className='flex gap-4 items-center justify-end'>
+                                <div className='flex flex-row gap-4 items-center justify-end sm:justify-center h-12'>
                                     <Button 
                                         onClick={onClose}
-                                        className="bg-gray-800 text-white px-6 py-2 rounded-lg hover:bg-gray-700"
+                                        className="w-full sm:w-auto border-slate-950 border text-indigo-600 bg-slate-900 font-bold hover:bg-slate-950 hover:border hover:border-indigo-700"
                                     >
                                         Cancel
                                     </Button>
                                     <Button 
                                         type="submit"
-                                        className="bg-indigo-700 text-white px-6 py-2 rounded-lg hover:bg-indigo-600"
+                                        className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-800 border border-slate-800"
                                     >
                                         Start Interview
                                     </Button>

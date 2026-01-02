@@ -36,19 +36,19 @@ const Interviews = () => {
             initial={{ y: 18, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className='container mx-auto px-28 py-8'
+            className='px-8 sm:px-16 lg:px-28 py-8 sm:py-12'
         >
-            <Card className="bg-slate-900 border-slate-800">
+            <Card className="bg-slate-950/70 border-slate-800 shadow-[0_0_30px_rgba(99,102,241,0.18)]">
                 <CardHeader>
-                    <CardTitle className="text-white text-center">Recent Interwiew Performances</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+                    <CardTitle className="text-white text-center mt-2 text-xl sm:text-2xl lg:text-3xl">Recent Interwiew Performances</CardTitle>
+                </CardHeader> 
+                <CardContent className="space-y-4 overflow-x-auto w-full">
                     {allInterviewsList.count <= 0 
                         ? <p className='text-slate-200 font-semibold'>There are no interviews...!</p> 
                         : (
-                            <Table>
+                            <Table className="min-w-[800px]">
                                 <TableHeader>
-                                    <TableRow className="border-b hover:bg-indigo-600/30">
+                                    <TableRow className="hover:bg-slate-800/60">
                                         <TableHead className="text-indigo-500">Sr. No.</TableHead>
                                         <TableHead className="text-indigo-500">Title</TableHead>
                                         <TableHead className="text-indigo-500">Type</TableHead>
@@ -62,7 +62,7 @@ const Interviews = () => {
                                 <TableBody>
                                     {allInterviewsList?.allInterviews?.map((item, index) => {
                                         return (
-                                            <TableRow key={index} className="border-b border-slate-700 hover:bg-slate-800">
+                                            <TableRow key={index} className="border-b border-slate-700 hover:bg-slate-900/80">
                                                 <TableCell className="font-medium text-white">{index+1}</TableCell>
                                                 <TableCell className="font-medium text-white">{item.title}</TableCell>
                                                 <TableCell className="text-slate-400 capitalize">{item.type}</TableCell>

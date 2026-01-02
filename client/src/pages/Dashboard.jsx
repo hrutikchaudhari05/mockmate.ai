@@ -85,12 +85,12 @@ const Dashboard = () => {
                     {/* First Card  */}
                     <StatCard title="Interviews Completed" content={totalInterviews} icon={Award} color="text-amber-500/80" />
                     <StatCard title="Average Score" content={averageScore} icon={Target} color="text-amber-500/80" />
-                    <StatCard title="Average Interview Duration" content={`${averageDuration} m`} icon={Clock} color="text-amber-500/80" />
-                    <StatCard title="Current Streak" content={`${streak} D`} icon={Flame} color="text-amber-500/80" />
+                    <StatCard title="Average Interview Duration" content={`${averageDuration}m`} icon={Clock} color="text-amber-500/80" />
+                    <StatCard title="Current Streak" content={`${streak}d`} icon={Flame} color="text-amber-500/80" />
                     
                 </div>
 
-                <div className='w-full border border-slate-800 rounded-lg text-center py-6 space-y-8'>
+                <div className='w-full border bg-slate-950/70 border-slate-800 rounded-lg text-center py-6 space-y-6 shadow-[0_0_25px_rgba(99,102,241,0.18)]'>
                     <p className='text-slate-300 font-bold text-lg sm:text-xl md:text-2xl lg:text-3xl'>Ready for your next challenge?</p>
                     <Button
                         className="bg-indigo-600 hover:bg-indigo-700 px-6 py-3 text-sm sm:text-base md:text-lg"
@@ -102,7 +102,7 @@ const Dashboard = () => {
                 </div>
 
                 <div>
-                    <Card className="bg-slate-900 border-slate-800">
+                    <Card className="bg-slate-950/70 border-slate-800 shadow-[0_0_25px_rgba(99,102,241,0.18)]">
                         <CardHeader>
                             <CardTitle className="text-white text-center text-xl md:text-2xl">Recent Interwiew Performances</CardTitle>
                         </CardHeader>
@@ -112,7 +112,7 @@ const Dashboard = () => {
                                 : (
                                     <Table className="min-w-[800px]">
                                         <TableHeader>
-                                            <TableRow className="border-b bg-slate-800/40 rounded-lg">
+                                            <TableRow className="hover:bg-slate-800/60">
                                                 <TableHead className="text-indigo-500">Sr. No.</TableHead>
                                                 <TableHead className="text-indigo-500">Title</TableHead>
                                                 <TableHead className="text-indigo-500">Type</TableHead>
@@ -126,7 +126,7 @@ const Dashboard = () => {
                                         <TableBody>
                                             {allInterviewsList?.allInterviews?.slice(0,5).map((item, index) => {
                                                 return (
-                                                    <TableRow key={index} className="border-b border-slate-700 hover:bg-slate-800">
+                                                    <TableRow key={index} className="border-b border-slate-700 hover:bg-slate-900/80">
                                                         <TableCell className="font-medium text-white">{index+1}</TableCell>
                                                         <TableCell className="font-medium text-white">{item.title}</TableCell>
                                                         <TableCell className="text-slate-400 capitalize">{item.type}</TableCell>
@@ -170,7 +170,7 @@ const Dashboard = () => {
 // card forming function 
 const StatCard = ({ title, content, icon: Iconn, color}) => {
     return (
-        <Card className="bg-slate-900 border-slate-800 flex flex-col justify-between">
+        <Card className="bg-slate-950/70 border-slate-800 flex flex-col justify-between shadow-[0_0_25px_rgba(99,102,241,0.18)]">
             <CardHeader className="flex flex-row gap-2 items-start justify-between">
                 <CardTitle className="text-slate-400 text-2xl lg:text-xl mt-1">{title}</CardTitle>
                 <Iconn size={48} className={`${color} shrink-0`} />
