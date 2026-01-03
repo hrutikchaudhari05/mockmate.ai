@@ -15,7 +15,7 @@ const Landing = () => {
   return (
     <div className="min-h-screen px-12 sm:px-18 lg:px-28 bg-gradient-to-br from-black via-indigo-950 to-black text-white">
 
-      {/* HERO */}
+      {/* Mani Hero section */}
       <section className="container mx-auto px-6 sm:px-10 lg:px-16 xl:px-24 py-20 text-center">
         <h1 className="text-4xl sm:text-5xl font-bold mb-6">
           Mock<span className="text-indigo-400">Mate</span>
@@ -38,7 +38,7 @@ const Landing = () => {
           <Button
             size="lg"
             // variant="outline"
-            className="border-slate-950 border text-indigo-600 bg-slate-900 font-bold hover:bg-slate-950 hover:border hover:border-indigo-700"
+            className="border-slate-950 border text-indigo-600 bg-slate-950/70 font-bold hover:bg-slate-950 hover:border hover:border-indigo-700 shadow-[0_0_15px_rgba(99,102,251,0.18)]"
             onClick={scrollToExplore}
           >
             Explore How It Works
@@ -46,7 +46,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* FEATURES */}
+      {/* features section */}
       <section className="container mx-auto px-4 sm:px-6 py-16">
         <h2 className="text-3xl font-bold text-center mb-12">
           Why Makes MockMate Different?
@@ -54,7 +54,7 @@ const Landing = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <Feature icon={Brain} title="Context-Aware AI Interviews"
-            desc="Questions are generated using role, experience, job description, interview focus, and target companies."
+            desc="Questions are generated using role, experience, job description, interview focus, and target organizations."
           />
           <Feature icon={Mic} title="Voice + Text Answering"
             desc="Answer naturally using voice (with transcript) or type structured responses. Voice attempts limited to simulate pressure."
@@ -74,7 +74,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* STEPS */}
+      {/* usage steps */}
       <section ref={exploreSectionRef} className="container mx-auto px-4 sm:px-6 py-16">
         <h2 className="text-3xl font-bold text-center mb-12">
           Your Interview Journey
@@ -114,7 +114,7 @@ const Landing = () => {
 const Feature = ({ icon: Icon, title, desc }) => (
   <div className="
     p-8 rounded-xl text-center
-    bg-slate-900/70
+    bg-slate-950/70
     border border-slate-800
     backdrop-blur-sm
     shadow-[0_0_20px_rgba(99,102,241,0.18)]
@@ -131,7 +131,7 @@ const Feature = ({ icon: Icon, title, desc }) => (
 );
 
 const Step = ({ step, title, points }) => (
-  <div className="p-6 sm:p-8 bg-slate-900/50 rounded-xl border border-slate-700 backdrop-blur-sm">
+  <div className="p-6 sm:p-8 bg-slate-950/70 rounded-xl border border-slate-700 backdrop-blur-sm shadow-[0_0_20px_rgba(99,102,241,0.28)]">
     <div className="flex items-center gap-4 mb-4">
       <div className="
         w-10 h-10 rounded-full

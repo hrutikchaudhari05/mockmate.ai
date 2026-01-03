@@ -66,7 +66,7 @@ const Login = () => {
             </div>
 
             <motion.div
-                className="w-full max-w-md sm:max-w-lg p-8 mb-8 md:p-10 bg-slate-900 rounded-3xl border border-slate-800
+                className="w-full max-w-md sm:max-w-lg p-8 mb-8 md:p-10 bg-slate-950/60 rounded-3xl border border-slate-800
                     shadow-[0_0_30px_rgba(99,102,241,0.18)]"
             >
                 

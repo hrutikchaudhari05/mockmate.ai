@@ -64,7 +64,7 @@ const Register = () => {
                     Mock<span className="text-indigo-400">Mate</span>
                 </h3>
             </div>
-            <motion.div className='w-full max-w-md sm:max-w-lg mb-8 px-8 py-6 md:px-10 md:py-8 bg-slate-900 rounded-3xl border border-slate-800 shadow-[0_0_30px_rgba(99,102,241,0.18)]'>
+            <motion.div className='w-full max-w-md sm:max-w-lg mb-8 px-8 py-6 md:px-10 md:py-8 bg-slate-950/60 rounded-3xl border border-slate-800 shadow-[0_0_30px_rgba(99,102,241,0.18)]'>
                 {/* Header section  */}
                 <header className="text-center mb-6">
                     {/* Logo */}

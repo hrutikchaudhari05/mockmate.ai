@@ -83,10 +83,10 @@ const Dashboard = () => {
                 <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6'>
 
                     {/* First Card  */}
-                    <StatCard title="Interviews Completed" content={totalInterviews} icon={Award} color="text-amber-500/80" />
-                    <StatCard title="Average Score" content={averageScore} icon={Target} color="text-amber-500/80" />
-                    <StatCard title="Average Interview Duration" content={`${averageDuration}m`} icon={Clock} color="text-amber-500/80" />
-                    <StatCard title="Current Streak" content={`${streak}d`} icon={Flame} color="text-amber-500/80" />
+                    <StatCard title="Interviews Completed" content={totalInterviews} icon={Award} color="text-amber-400/70" />
+                    <StatCard title="Average Score" content={averageScore} icon={Target} color="text-amber-400/70" />
+                    <StatCard title="Average Interview Duration" content={`${averageDuration}m`} icon={Clock} color="text-amber-400/70" />
+                    <StatCard title="Current Streak" content={`${streak}d`} icon={Flame} color="text-amber-400/70" />
                     
                 </div>
 
@@ -136,7 +136,7 @@ const Dashboard = () => {
                                                         <TableCell className="pr-8 tabular-nums text-right">
                                                             <span className={`font-bold
                                                                 ${item.overallFeedback.score >= 80 ? 'text-emerald-500' : 
-                                                                item.overallFeedback.score >= 60 ? 'text-amber-500/90' : 'text-red-500/90'}`}
+                                                                item.overallFeedback.score >= 60 ? 'text-amber-400/80' : 'text-red-500/90'}`}
                                                             >{item.overallFeedback.score ?? '--'}</span>
                                                         </TableCell>
                                                         <TableCell className="text-slate-400 capitalize">{item.overallFeedback.recommendation}</TableCell>

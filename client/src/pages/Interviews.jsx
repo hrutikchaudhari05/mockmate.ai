@@ -36,7 +36,7 @@ const Interviews = () => {
             initial={{ y: 18, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className='px-8 sm:px-16 lg:px-28 py-8 sm:py-12'
+            className='py-8 sm:py-12'
         >
             <Card className="bg-slate-950/70 border-slate-800 shadow-[0_0_30px_rgba(99,102,241,0.18)]">
                 <CardHeader>
@@ -71,8 +71,8 @@ const Interviews = () => {
                                                 <TableCell className="text-slate-400">{formatDate(item.updatedAt)}</TableCell>
                                                 <TableCell className="text-right pr-8 tabular-nums">
                                                     <span className={`font-bold
-                                                        ${item.overallFeedback.score >= 80 ? 'text-emerald-500' : 
-                                                        item.overallFeedback.score >= 60 ? 'text-amber-500/90' : 'text-red-500/90'}`}
+                                                        ${item.overallFeedback.score >= 80 ? 'text-emerald-500/90' : 
+                                                        item.overallFeedback.score >= 60 ? 'text-amber-400/70' : 'text-red-500/70'}`}
                                                     >{item.overallFeedback.score ?? '--'}</span>
                                                 </TableCell>
                                                 <TableCell className="text-slate-400 capitalize">{item.overallFeedback.recommendation}</TableCell>
