@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mic, Headphones } from 'lucide-react';
+import { Mic, Headphones, AlertTriangle, Clock, Monitor, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 // redux imports 
@@ -172,78 +172,141 @@ const PreInterviewScreen = ({onStart}) => {
 
     return (
         <div className='
-            text-white
-            border flex flex-col justify-center items-center
-            min-h-screen bg-slate-950
+            min-h-screen bg-slate-950 text-white
+            flex flex-col items-center px-4 border border-indigo-400
             '
         >
             {interviewLoading ? (
-                <div className="flex flex-col items-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mb-4"></div>
-                    <p>Loading your interview...</p>
+                <div className="min-h-screen w-full flex flex-col items-center justify-center">
+                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-500 mb-4" />
+                    <p className='text-slate-300 text-sm'>
+                        Preparing your interview environment...
+                    </p>
                 </div>
             ) : (
-                <>
-                <h1 className="text-4xl font-bold mb-6">Instructions</h1>
-      
-                <div className="space-y-4 max-w-2xl text-center">
-                    <div className="flex items-center gap-3">
-                        <Mic className="text-indigo-500" />
-                        <p>Please allow microphone access when prompted</p>
+                <div className='w-full max-w-4xl py-12'>
+
+                    {/* Header */}
+                    <h1 className="text-2xl md:text-3xl font-semibold mb-6 text-center">Interview Instructions</h1>
+        
+                    <div className='flex justify-between gap-2'>
+                        {/* Metadata */}
+                        <section className='space-y-2 w-[50%] bg-slate-900 p-6 rounded-md'>
+                            <OverviewRow label="Interview Type" value="Technical" />
+                            <OverviewRow label="Role" value="Frontend Developer" />
+                            <OverviewRow label="Experience Level" value="1–3 Years" />
+                            <OverviewRow label="Total Questions" value="12" />
+                            <OverviewRow label="Duration" value="45 minutes" />
+                            <OverviewRow label="Answer Mode" value="Voice + Text" />
+                        </section>
+
+                        {/* Rules */}
+                        <section className='flex flex-col justify-around text-sm text-slate-300 bg-slate-900 w-[50%] p-5 rounded-md'>
+                            <Rule icon={Mic} text="Microphone permission is required to proceed." />
+                            <Rule icon={AlertTriangle} text="Do not refresh or use the back button during the interview." />
+                            <Rule icon={Clock} text="The timer cannot be paused once the interview starts." />
+                            <Rule icon={Layers} text="Only one question is shown at a time." />
+                            <Rule icon={Monitor} text="The interview starts automatically after the countdown." />
+                        </section>
                     </div>
+
+                    <Divider />
+
+                    {/* Answer Guidance */}
+                    <section className="space-y-3 text-sm text-slate-300 mb-6">
+                        <p className="font-medium text-white">
+                            Answering Questions
+                        </p>
+
+                        <p>
+                            Each question includes metadata such as question type, difficulty,
+                            estimated time, and suggested word count.
+                        </p>
+
+                        <p>
+                            Use this information to structure your answer effectively.
+                        </p>
+
+                        <p>
+                            Audio recording attempts are limited per question.
+                            Typed answers can be edited freely.
+                        </p>
+                    </section>
+
+                    <Divider />
+
                     
-                    <div className="flex items-center gap-3">
-                        <Headphones className="text-indigo-500" />
-                        <p>Use headphones for best audio quality</p>
+
+                    {/* IMP section - controls */}
+                    <div className='flex flex-col items-center gap-4'>
+                        <Button 
+                            disabled={isStarting}
+                            onClick={requestPermissions}
+                            className="px-10 py-6 text-base bg-indigo-600 hover:bg-indigo-700"
+                        >
+                            Start Interview
+                        </Button>
+
+                        {showFullscreenBtn && (
+                            <Button 
+                                onClick={enterFullScreenAndStart}
+                                className="border-slate-700 border text-indigo-500 bg-slate-900 font-bold hover:bg-slate-950 hover:border hover:border-indigo-700"
+                                size="lg"
+                            >
+                                Enter Full Screen & Start
+                            </Button>
+                        )}
+
+                        {showExitConfirm && (
+                            <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
+                                <div className="bg-slate-800 p-6 rounded-lg">
+                                    <h3 className='text-xl font-bold mb-4'>Exit Interview Setup?</h3>
+                                    <p className='mb-6'>Your progress will be lost.</p>
+                                    <div className='flex gap-4'>
+                                        <Button 
+                                            onClick={() => navigate('/dashboard')}
+                                            variant="destructive"
+                                        >
+                                            Exit
+                                        </Button>
+                                        <Button onClick={() => setShowExitConfirm(false)}>Continue Setup</Button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {showCountdown && (
+                            <div className="text-indigo-400 text-sm mt-2 font-semibold">
+                                Interview begins in {countdown} seconds...
+                            </div>
+                        )}
                     </div>
                 </div>
-
-                <Button 
-                    disabled={isStarting}
-                    onClick={requestPermissions}
-                    className="mt-12 mb-4 px-8 py-6 text-lg bg-slate-900 hover:bg-indigo-600"
-                >
-                    Begin Interview
-                </Button>
-
-                {showFullscreenBtn && (
-                    <Button 
-                        onClick={enterFullScreenAndStart}
-                        className="border-slate-800 border text-indigo-600 bg-slate-900 font-bold hover:bg-slate-950 hover:border hover:border-indigo-700"
-                        size="lg"
-                    >
-                        Enter Full-Screen & Start Interview
-                    </Button>
-                )}
-
-                {showExitConfirm && (
-                    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
-                        <div className="bg-slate-800 p-6 rounded-lg">
-                            <h3 className='text-xl font-bold mb-4'>Exit Interview Setup?</h3>
-                            <p className='mb-6'>Your progress will be lost.</p>
-                            <div className='flex gap-4'>
-                                <Button 
-                                    onClick={() => navigate('/dashboard')}
-                                    variant="destructive"
-                                >
-                                    Exit
-                                </Button>
-                                <Button onClick={() => setShowExitConfirm(false)}>Continue Setup</Button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {showCountdown && (
-                    <div className="mt-4 text-indigo-400 text-xl font-bold">
-                        Starting in {countdown} seconds...
-                    </div>
-                )}
-                </>
             )}
         </div>
-    )
+    );
 }
+
+/* helpers */
+
+const OverviewRow = ({ label, value }) => (
+  <div className="flex justify-between gap-4 border-b border-slate-800 pb-1">
+    <span className="text-slate-400 text-sm">{label}</span>
+    <span className="text-sm font-medium">{value}</span>
+  </div>
+);
+
+const Divider = () => (
+  <div className="my-4 h-px bg-slate-800" />
+);
+
+const Rule = ({ icon: Icon, text }) => (
+  <div className="flex gap-3">
+    <Icon size={16} className="text-indigo-400 mt-[2px]" />
+    <p>{text}</p>
+  </div>
+);
+
 
 export default PreInterviewScreen;
 

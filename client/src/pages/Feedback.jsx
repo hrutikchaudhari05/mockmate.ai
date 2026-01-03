@@ -67,7 +67,7 @@ const Feedback = () => {
                 transition={{ delay: 0.3 }}
                 className="container mx-auto px-4 py-8"
             >
-                {/* Your existing code... */}
+                
                 
                 <div className="container mx-auto px-4 py-8 text-white">
                     <h1 className="text-4xl font-bold text-center mb-2">
@@ -78,7 +78,7 @@ const Feedback = () => {
                     </p>
                     
                     {/* Overall Score Card */}
-                    <Card className="bg-slate-900 border-slate-800 mb-8 mx-72">
+                    <Card className="bg-slate-950/70 border-slate-800 mb-8 mx-72 backdrop-blur-sm shadow-[0_0_20px_rgba(99,10,251,0.28)]">
                         <CardHeader className="items-center">
                             <CardTitle className="flex text-2xl items-center gap-2 text-slate-300">
                                 <TrendingUp size={24} className="text-indigo-600 mt-[3px]" />
@@ -100,7 +100,7 @@ const Feedback = () => {
                     </Card>
 
                     {/* Summary */}
-                    <Card className="bg-slate-900 border-slate-800 mb-8 mx-40 ">
+                    <Card className="bg-slate-950/70 border-slate-800 mb-8 mx-40 backdrop-blur-sm shadow-[0_0_20px_rgba(99,10,251,0.28)]">
                         <CardHeader className="items-center">
                             <CardTitle className="flex text-2xl items-center gap-2 text-slate-300">
                                 <MessageSquareText size={24} className="text-indigo-600 items-center mt-[3px]" />
@@ -114,9 +114,9 @@ const Feedback = () => {
                         </CardContent>
                     </Card>
 
-                    <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 bg-slate-900 mx-40 mb-8 p-4 rounded-md border border-slate-800'>
+                    <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 bg-slate-950/70 mx-40 mb-8 p-4 rounded-md border border-slate-800 backdrop-blur-sm shadow-[0_0_20px_rgba(99,10,251,0.28)]'>
                         {/* Areas of Improvement */}
-                        <Card className=" bg-slate-900 border-slate-800">
+                        <Card className=" bg-slate-950/60 border-slate-800">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-slate-300 text-xl">
                                     <XCircle className="text-red-500/90 mt-[1px]" />
@@ -142,7 +142,7 @@ const Feedback = () => {
                         </Card>
 
                         {/* Areas of Strengths */}
-                        <Card className=" bg-slate-900 border-slate-800">
+                        <Card className=" bg-slate-950/60 border-slate-800">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-slate-300 text-xl">
                                     <CheckCircle2 className="text-emerald-500 mt-[1px]" />
@@ -169,7 +169,7 @@ const Feedback = () => {
                     </div>
 
                     {/* Question-wise Analysis */}
-                    <Card className="bg-slate-900 border-slate-800 mb-8 mx-32">
+                    <Card className="bg-slate-950/70 border-slate-800 mb-8 mx-32 backdrop-blur-sm shadow-[0_0_20px_rgba(99,10,251,0.28)] p-4">
                         <CardHeader>
                             <CardTitle className="text-center text-3xl font-medium text-indigo-600 mb-2">Question-wise Analysis</CardTitle>
                         </CardHeader>
@@ -267,7 +267,7 @@ const Feedback = () => {
                             Download Detailed Report
                         </Button>
                         
-                        <Button className="border-slate-700 text-indigo-600 bg-slate-900 font-bold hover:bg-slate-950 hover:border hover:border-indigo-700"
+                        <Button className="border-slate-950 border text-indigo-600 bg-slate-950/70 font-bold hover:bg-slate-950 hover:border hover:border-indigo-700 shadow-[0_0_20px_rgba(99,10,251,0.28)]"
                             onClick={() => navigate("/dashboard")}>
                             Back to Dashboard
                         </Button>

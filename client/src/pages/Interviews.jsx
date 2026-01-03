@@ -35,7 +35,7 @@ const Interviews = () => {
         <motion.div 
             initial={{ y: 18, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.3 }}
+            transition={{ duration: 0.3 }}
             className='py-8 sm:py-12'
         >
             <Card className="bg-slate-950/70 border-slate-800 shadow-[0_0_30px_rgba(99,102,241,0.18)]">

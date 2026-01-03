@@ -59,7 +59,7 @@ const Dashboard = () => {
     return (
 
         
-        <div className='px-8 sm:px-16 lg:px-28 py-12 sm:py-16 space-y-8'>
+        <div className='py-12 sm:py-16 space-y-8'>
 
             {/* Ye div responsible hai pure dashboard page ko blur karne ke liye */}
             <motion.div
@@ -83,10 +83,10 @@ const Dashboard = () => {
                 <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6'>
 
                     {/* First Card  */}
-                    <StatCard title="Interviews Completed" content={totalInterviews} icon={Award} color="text-amber-400/70" />
-                    <StatCard title="Average Score" content={averageScore} icon={Target} color="text-amber-400/70" />
-                    <StatCard title="Average Interview Duration" content={`${averageDuration}m`} icon={Clock} color="text-amber-400/70" />
-                    <StatCard title="Current Streak" content={`${streak}d`} icon={Flame} color="text-amber-400/70" />
+                    <StatCard title="Interviews Completed" content={totalInterviews} icon={Award} color="text-amber-400/80" />
+                    <StatCard title="Average Score" content={averageScore} icon={Target} color="text-amber-400/80" />
+                    <StatCard title="Average Interview Duration" content={`${averageDuration}m`} icon={Clock} color="text-amber-400/80" />
+                    <StatCard title="Current Streak" content={`${streak}d`} icon={Flame} color="text-amber-400/80" />
                     
                 </div>
 
