@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mic, Headphones, AlertTriangle, Clock, Monitor, Layers } from 'lucide-react';
+import { Mic, Headphones, AlertTriangle, Clock, Monitor, Layers, Info, BarChart3, Timer, Type } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 // redux imports 
@@ -191,7 +191,7 @@ const PreInterviewScreen = ({onStart}) => {
         
                     <div className='flex justify-between gap-2'>
                         {/* Metadata */}
-                        <section className='space-y-2 w-[50%] bg-slate-900 p-6 rounded-md'>
+                        <section className='space-y-2 w-[50%] bg-slate-900/50 p-6 rounded-md'>
                             <OverviewRow label="Interview Type" value="Technical" />
                             <OverviewRow label="Role" value="Frontend Developer" />
                             <OverviewRow label="Experience Level" value="1–3 Years" />
@@ -213,24 +213,42 @@ const PreInterviewScreen = ({onStart}) => {
                     <Divider />
 
                     {/* Answer Guidance */}
-                    <section className="space-y-3 text-sm text-slate-300 mb-6">
-                        <p className="font-medium text-white">
+                    <section className="space-y-1 text-md text-slate-300 mb-6">
+                        <p className="font-medium text-white flex items-center gap-2">
+                            <Info className="w-4 h-4 text-amber-400/80" />
                             Answering Questions
                         </p>
 
-                        <p>
-                            Each question includes metadata such as question type, difficulty,
-                            estimated time, and suggested word count.
-                        </p>
+                        <ul className="space-y-1.5">
+                            <li className="flex items-start gap-2">
+                            <BarChart3 className="w-4 h-4 mt-0.5 text-indigo-400" />
+                            <span>
+                                Each question includes metadata like type, difficulty, estimated time,
+                                and suggested word count.
+                            </span>
+                            </li>
 
-                        <p>
-                            Use this information to structure your answer effectively.
-                        </p>
+                            <li className="flex items-start gap-2">
+                            <Timer className="w-4 h-4 mt-0.5 text-indigo-400" />
+                            <span>
+                                Use this information to structure your answer effectively.
+                            </span>
+                            </li>
 
-                        <p>
-                            Audio recording attempts are limited per question.
-                            Typed answers can be edited freely.
-                        </p>
+                            <li className="flex items-start gap-2">
+                            <Mic className="w-4 h-4 mt-0.5 text-indigo-400" />
+                            <span>
+                                Audio attempts are limited per question.
+                            </span>
+                            </li>
+
+                            <li className="flex items-start gap-2">
+                            <Type className="w-4 h-4 mt-0.5 text-indigo-400" />
+                            <span>
+                                Typed answers can be edited freely.
+                            </span>
+                            </li>
+                        </ul>
                     </section>
 
                     <Divider />

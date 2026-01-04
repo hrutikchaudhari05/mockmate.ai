@@ -65,56 +65,56 @@ const Feedback = () => {
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.3 }}
-                className="container mx-auto px-4 py-8"
+                className="container mx-auto px-4 md:px-6 lg:px-8 py-10 space-y-10 text-white"
             >
                 
                 
-                <div className="container mx-auto px-4 py-8 text-white">
-                    <h1 className="text-4xl font-bold text-center mb-2">
+                <div className="text-center space-y-2">
+                    <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold">
                         Interview Results
                     </h1>
-                    <p className="text-slate-400 text-center mb-8">
+                    <p className="text-slate-400 text-sm md:text-base">
                         Detailed analysis of your performance
                     </p>
                     
                     {/* Overall Score Card */}
-                    <Card className="bg-slate-950/70 border-slate-800 mb-8 mx-72 backdrop-blur-sm shadow-[0_0_20px_rgba(99,10,251,0.28)]">
+                    <Card className="bg-slate-950/70 border-slate-800 max-w-3xl mx-auto shadow-[0_0_20px_rgba(99,10,251,0.28)]">
                         <CardHeader className="items-center">
-                            <CardTitle className="flex text-2xl items-center gap-2 text-slate-300">
-                                <TrendingUp size={24} className="text-indigo-600 mt-[3px]" />
-                                Overall Performance Score
+                            <CardTitle className="flex text-lg md:text-xl items-center gap-2 text-slate-300">
+                                <TrendingUp size={24} className="text-indigo-600" />
+                                Overall Performance
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-2">
+                        <CardContent className="space-y-3">
                             <div className="flex items-center justify-between">
-                                <div className="text-3xl font-bold text-white">
+                                <span className="text-3xl font-bold text-slate-300">
                                     {score}%
-                                </div>
-                                <div className={`font-medium text-xl capitalize ${getRecommendationColor(score)}`}>
+                                </span>
+                                <span className={`font-semibold capitalize ${getRecommendationColor(score)}`}>
                                     {/* Recommendation */}
                                     {currentInterview.overallFeedback.recommendation}
-                                </div>
+                                </span>
                             </div>
                             <Progress value={score} className="h-2 [&>div]:bg-indigo-600" />
                         </CardContent>
                     </Card>
 
                     {/* Summary */}
-                    <Card className="bg-slate-950/70 border-slate-800 mb-8 mx-40 backdrop-blur-sm shadow-[0_0_20px_rgba(99,10,251,0.28)]">
+                    <Card className="bg-slate-950/70 border-slate-800 max-w-3xl mx-auto shadow-[0_0_20px_rgba(99,10,251,0.28)]">
                         <CardHeader className="items-center">
-                            <CardTitle className="flex text-2xl items-center gap-2 text-slate-300">
-                                <MessageSquareText size={24} className="text-indigo-600 items-center mt-[3px]" />
-                                Feedback
+                            <CardTitle className="flex items-center gap-2 text-lg md:text-xl text-slate-300">
+                                <MessageSquareText size={22} className="text-indigo-600" />
+                                Feedback Summary
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-2">
-                            <p className='text-slate-400'>
+                        <CardContent>
+                            <p className='text-slate-400 text-sm md:text-base leading-relaxed'>
                                 {currentInterview.overallFeedback.summary}
                             </p>
                         </CardContent>
                     </Card>
 
-                    <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 bg-slate-950/70 mx-40 mb-8 p-4 rounded-md border border-slate-800 backdrop-blur-sm shadow-[0_0_20px_rgba(99,10,251,0.28)]'>
+                    <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 bg-slate-950/70 max-w-5xl mx-auto mb-8 p-4 rounded-md border border-slate-800 backdrop-blur-sm shadow-[0_0_20px_rgba(99,10,251,0.28)]'>
                         {/* Areas of Improvement */}
                         <Card className=" bg-slate-950/60 border-slate-800">
                             <CardHeader>
