@@ -1,12 +1,14 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from './ui/button';   
-import { Clock, Upload } from 'lucide-react';   // for timer
+import { Clock, Headphones, Upload } from 'lucide-react';   // for timer
 import { Textarea } from './ui/textarea';
 
 // import useSelector for getting data from redux 
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { fetchInterviewById, submitAnswer, getTranscriptT, evaluateInverview, clearMediaStream } from '@/store/interviewSlice';
+
+import { getDynamicNote } from '@/utils/getDynamicNote';
 
 const ActualInterviewScreen = () => {
 
@@ -432,7 +434,13 @@ const ActualInterviewScreen = () => {
         }
     }, [latestBlobRef.current, isRecording]);
 
-
+    // Imp Metadata 
+    const questions = currentInterview?.questions;
+    const questionText = questions[currQueIndex].questionObj?.qtxt;
+    const difficulty = questions[currQueIndex].questionObj?.qd;
+    const questionType = questions[currQueIndex].questionObj?.qtyp;
+    const estimatedTime = questions[currQueIndex].questionObj?.et;
+    const expectedWordCount = questions[currQueIndex].questionObj?.wc;
     
     return (
 
@@ -466,6 +474,7 @@ const ActualInterviewScreen = () => {
                         variant="destructive"
                         onClick={handleEndInterview}
                         disabled={isLoading || isConverting}
+                        className="bg-red-500/80"
                     >
                         End Interview
                     </Button>
@@ -473,30 +482,73 @@ const ActualInterviewScreen = () => {
             </header>
 
             {/* ye main container hai -> yaha split screen add karni padegi */}
-            <main className='flex-1 grid grid-cols-1 lg:grid-cols-5'>
+            <main className='flex-1 grid grid-cols-1 lg:grid-cols-5 lg:gap-1 py-2'>
 
                 {/* LEFT: Question Area */}
-                <div className='border-r border-slate-800 flex flex-col justify-center items-left p-8 lg:p-12 bg-slate-950/50 lg:col-span-2'>
-                    
+                <div className='border-r border-slate-800 flex flex-col justify-start lg:justify-start p-8 lg:p-12 lg:pt-40 bg-slate-950/50 lg:col-span-2'>
+
+                    {/* QUESTION META BAR */}
+                    <div
+                        className="
+                            flex flex-wrap gap-1.5 md:gap-2 mb-4
+                        "
+                    >
+                        <MetaBadge
+                            label="Difficulty"
+                            value={difficulty}
+                            className={DIFFICULTY_STYLES[difficulty]}
+                        />
+
+                        <MetaBadge
+                            label="Type"
+                            value={questionType}
+                            className="bg-indigo-500/10 text-indigo-400 border-indigo-500/30"
+                        />
+
+                        <MetaBadge
+                            label="Words"
+                            value={expectedWordCount}
+                            className="bg-indigo-500/10 text-indigo-400 border-indigo-500/30"
+                        />
+
+                        <MetaBadge
+                            label="Time"
+                            value={`${formatTime(estimatedTime).substring(1)}m`}
+                            // className="bg-slate-700/40 text-slate-300 border-slate-600"
+                            className="bg-indigo-500/10 text-indigo-400 border-indigo-500/30"
+                        />
+                    </div>
+
                     {/* QUESTION */}
-                    <h2 className='text-3xl text-white mb-4 font-light'>
-                        {currentInterview?.questions[currQueIndex].questionObj.qtxt}
+                    <h2 className='text-2xl md:text-3xl lg:text-4xl leading-snug text-white mb-3 font-light'>
+                        {questionText}
                     </h2>
 
-                    {/* NOTE */}
-                    <p className='text-slate-400 text-sm'>
-                        <span className='text-indigo-500 font-semibold'>Note:</span> Provide a detailed explanation. You can write code or pseudocode in the text editor.
-                    </p>
+                    {/* DYNAMIC NOTE */}
+                    {getDynamicNote({
+                        difficulty,
+                        type: questionType,
+                        expectedWords: expectedWordCount,
+                    }) && (
+                        <p className="text-slate-400 text-sm max-w-xl ">
+                            <span className="text-indigo-400 font-medium">Note:</span>{" "}
+                            {getDynamicNote({
+                                difficulty,
+                                type: questionType,
+                                expectedWords: expectedWordCount,
+                            })}
+                        </p>
+                    )}
                 </div>
 
                 {/* RIGHT: Answer Area - partition div */}
-                <div className='lg:col-span-3 p-6 lg:p-8 bg-slate-950 flex flex-col'>
+                <div className='lg:col-span-3 p-4 lg:p-8 bg-slate-950 flex flex-col'>
 
                     {/* logic div - ab content ke liye alag div banaya to avoid confusion between partion div and logic div */}
-                    <div className='flex-1 flex flex-col rounded-lg border border-slate-800 bg-slate-900 overflow-hidden'>
+                    <div className='flex-1 flex flex-col rounded-lg border border-slate-800 overflow-hidden'>
                         
                         {/* EDITOR TOOLBAR */}
-                        <div className='px-4 py-3 border-b border-slate-800 bg-slate-900 flex justify-between items-center'>
+                        <div className='px-4 py-3 border-b border-slate-800 bg-slate-900/50 flex justify-between items-center'>
                             
                             {/* TEXT EDITOR NAME */}
                             <span className='text-xs font-mono uppercase text-slate-500 tracking-widest'>Answer Editor</span>
@@ -504,27 +556,27 @@ const ActualInterviewScreen = () => {
                             {/* PULSE INDICATOR FOR RECORDING */}
                             {isRecording && (
                                 <span className='text-red-400 text-xs flex items-center'>
-                                    ● Recording... {recordSeconds}
+                                    ● Recording... {formatTime(recordSeconds)}
                                 </span>
                             )}
                         </div>
 
                         {/* MAIN TEXT EDITOR */}
                         <Textarea 
-                            className=" flex-1 w-full p-4 bg-transparent border-0 text-slate-200 text-lg font-mono resize-none focus:outline-none focus:ring-0 leading-relaxed"
+                            className="bg-slate-900/50 flex-1 w-full p-4 border-0 text-slate-200 text-sm font-mono resize-none focus:outline-none focus:ring-0 leading-relaxed placeholder:text-slate-500"
                             style={{outline: 'none', boxShadow: 'none'}}
                             placeholder="// Type your answer here..."
-                            value={answer}
+                            value={answer} 
                             onChange={handleAnswerChange}
                         />
 
                         {/* BOTTOM ACTIONS - START RECORDING & SUBMIT QUESTIONS */}
-                        <div className='px-4 py-3 border-t border-slate-800 bg-slate-900 flex justify-between items-center'>
+                        <div className='px-4 py-3 border-t border-slate-800 bg-slate-900/50 flex justify-between items-center'>
                             
                             <div className='flex items-center gap-3'>
                                 {/* START RECORDING */}
                                 <Button
-                                    className="bg-indigo-600 hover:bg-indigo-700"
+                                    className="bg-indigo-600/70 hover:bg-indigo-700/70 border border-indigo-950"
                                     disabled={attempts >= 3 || isConverting || isLoading}
                                     onClick={handleRecordAction}
                                 >
@@ -538,9 +590,11 @@ const ActualInterviewScreen = () => {
 
                                 <Button 
                                     onClick={playAudio}
-                                    disabled={isConverting}
+                                    disabled={isConverting || isLoading}
+                                    className="border-slate-700 border text-slate-400 bg-slate-950/80 font-bold hover:bg-slate-950 hover:border hover:border-indigo-700/80 hover:text-indigo-500"
                                 >
-                                    🔊 Test Play
+                                    <Headphones className='text-indigo-500/80' />
+                                    Test Audio
                                 </Button>
                                 
                             </div>
@@ -549,6 +603,8 @@ const ActualInterviewScreen = () => {
                             <Button
                                 disabled={isLoading || isConverting}
                                 onClick={handleSubmit}
+                                className="border-slate-700 border text-slate-400 bg-slate-950/80 font-bold hover:bg-slate-950 hover:border hover:border-indigo-700/80 hover:text-indigo-500"
+                                
                             >
                                 {currQueIndex >= currentInterview?.questions.length - 1 
                                     ? (isLoading ? 'Saving...' : "End Interview") 
@@ -565,6 +621,28 @@ const ActualInterviewScreen = () => {
         </div>
     )
 }
+
+// IMP Code for JSX 
+const DIFFICULTY_STYLES = {
+  easy: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
+  medium: "bg-amber-400/10 text-amber-400/90 border-amber-400/30",
+  hard: "bg-red-500/10 text-red-400 border-red-500/30",
+  advanced: "bg-purple-600/10 text-purple-400 border-purple-600/30",
+};
+
+const MetaBadge = ({ label, value, className }) => {
+    if (!value) return null;
+    return (
+        <div
+            className={`text-xs px-3 py-1 rounded-full border font-mono tracking-wide ${className}`}
+        >
+            <span className='opacity-60'>{label}:</span> {value}
+        </div>
+    );
+};
+
+
+
 
 export default ActualInterviewScreen;
 

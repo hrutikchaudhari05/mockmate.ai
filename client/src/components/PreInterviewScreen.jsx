@@ -30,6 +30,12 @@ const PreInterviewScreen = ({onStart}) => {
     console.log("mmm Interview Data: ", currentInterview)
     console.log("Interview Questions: ", currentInterview?.questions?.map(q => q.questionObj));
 
+    // IMP Metadata 
+    const type = currentInterview?.type;
+    const title = currentInterview?.title;
+    const experience = currentInterview?.experience;
+    const duration = currentInterview?.duration/60;
+    const totalQuestions = currentInterview?.questions?.length;
     
 
     // validating interviewData is present or not 
@@ -51,7 +57,7 @@ const PreInterviewScreen = ({onStart}) => {
 
     // isStarting state for knowing the timer that insterview is getting started
     const [isStarting, setIsStarting] = useState(false);    // to disable the button for preventing double clicks
-    const [countdown, setCountdown] = useState(5);  // to display on the screen
+    const [countdown, setCountdown] = useState(60);  // to display on the screen
     // const [mediaStream, setMediaStream] = useState(null);   // sirf cleanup ke liye - jb current component unmount hoga tb mediaStream bhi stop kr do
     // actually mediaStream ek object store karta hai named stream ( jisme user ke media permissions stored hote hai )
 
@@ -173,7 +179,7 @@ const PreInterviewScreen = ({onStart}) => {
     return (
         <div className='
             min-h-screen bg-slate-950 text-white
-            flex flex-col items-center px-4 border border-indigo-400
+            flex flex-col items-center px-6 border border-indigo-400
             '
         >
             {interviewLoading ? (
@@ -189,19 +195,19 @@ const PreInterviewScreen = ({onStart}) => {
                     {/* Header */}
                     <h1 className="text-2xl md:text-3xl font-semibold mb-6 text-center">Interview Instructions</h1>
         
-                    <div className='flex justify-between gap-2'>
+                    <div className='grid grid-cols-1 sm:grid-cols-2 gap-2 place-items-stretch w-full'>
                         {/* Metadata */}
-                        <section className='space-y-2 w-[50%] bg-slate-900/50 p-6 rounded-md'>
-                            <OverviewRow label="Interview Type" value="Technical" />
-                            <OverviewRow label="Role" value="Frontend Developer" />
-                            <OverviewRow label="Experience Level" value="1–3 Years" />
-                            <OverviewRow label="Total Questions" value="12" />
-                            <OverviewRow label="Duration" value="45 minutes" />
+                        <section className='w-full text-sm bg-slate-900/70 p-4 md:p-6 rounded-md h-full flex flex-col gap-1'>
+                            <OverviewRow label="Interview Type" value={type} />
+                            <OverviewRow label="Role" value={title} />
+                            <OverviewRow label="Experience Level" value={experience} />
+                            <OverviewRow label="Total Questions" value={totalQuestions} />
+                            <OverviewRow label="Duration" value={`${duration} minutes`} />
                             <OverviewRow label="Answer Mode" value="Voice + Text" />
                         </section>
 
                         {/* Rules */}
-                        <section className='flex flex-col justify-around text-sm text-slate-300 bg-slate-900 w-[50%] p-5 rounded-md'>
+                        <section className='w-full text-sm lg:text-md bg-slate-900/70 p-4 md:p-6 rounded-md h-full flex flex-col gap-3'>
                             <Rule icon={Mic} text="Microphone permission is required to proceed." />
                             <Rule icon={AlertTriangle} text="Do not refresh or use the back button during the interview." />
                             <Rule icon={Clock} text="The timer cannot be paused once the interview starts." />
@@ -213,7 +219,7 @@ const PreInterviewScreen = ({onStart}) => {
                     <Divider />
 
                     {/* Answer Guidance */}
-                    <section className="space-y-1 text-md text-slate-300 mb-6">
+                    <section className="space-y-1 text-md text-slate-300 mb-6 ml-1">
                         <p className="font-medium text-white flex items-center gap-2">
                             <Info className="w-4 h-4 text-amber-400/80" />
                             Answering Questions
@@ -221,7 +227,7 @@ const PreInterviewScreen = ({onStart}) => {
 
                         <ul className="space-y-1.5">
                             <li className="flex items-start gap-2">
-                            <BarChart3 className="w-4 h-4 mt-0.5 text-indigo-400" />
+                            <BarChart3 className="w-4 h-4 mt-0.5 text-indigo-400 shrink-0" />
                             <span>
                                 Each question includes metadata like type, difficulty, estimated time,
                                 and suggested word count.
@@ -229,21 +235,21 @@ const PreInterviewScreen = ({onStart}) => {
                             </li>
 
                             <li className="flex items-start gap-2">
-                            <Timer className="w-4 h-4 mt-0.5 text-indigo-400" />
+                            <Timer className="w-4 h-4 mt-0.5 text-indigo-400 shrink-0" />
                             <span>
                                 Use this information to structure your answer effectively.
                             </span>
                             </li>
 
                             <li className="flex items-start gap-2">
-                            <Mic className="w-4 h-4 mt-0.5 text-indigo-400" />
+                            <Mic className="w-4 h-4 mt-0.5 text-indigo-400 shrink-0" />
                             <span>
                                 Audio attempts are limited per question.
                             </span>
                             </li>
 
                             <li className="flex items-start gap-2">
-                            <Type className="w-4 h-4 mt-0.5 text-indigo-400" />
+                            <Type className="w-4 h-4 mt-0.5 text-indigo-400 shrink-0" />
                             <span>
                                 Typed answers can be edited freely.
                             </span>
@@ -294,7 +300,7 @@ const PreInterviewScreen = ({onStart}) => {
                         )}
 
                         {showCountdown && (
-                            <div className="text-indigo-400 text-sm mt-2 font-semibold">
+                            <div className="text-indigo-400 text-xl mt-2 font-semibold">
                                 Interview begins in {countdown} seconds...
                             </div>
                         )}
@@ -310,7 +316,7 @@ const PreInterviewScreen = ({onStart}) => {
 const OverviewRow = ({ label, value }) => (
   <div className="flex justify-between gap-4 border-b border-slate-800 pb-1">
     <span className="text-slate-400 text-sm">{label}</span>
-    <span className="text-sm font-medium">{value}</span>
+    <span className="text-sm font-medium capitalize">{value}</span>
   </div>
 );
 

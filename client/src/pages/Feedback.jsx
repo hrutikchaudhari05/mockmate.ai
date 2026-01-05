@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, XCircle, TrendingUp, MessageSquareText, Sparkle, AlertCircle, ChevronRight, Dot, Minus} from 'lucide-react';
+import { CheckCircle2, XCircle, TrendingUp, MessageSquareText, Sparkle, AlertCircle, ChevronRight, Dot, Minus, Disc3, CircleDot} from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -69,19 +69,21 @@ const Feedback = () => {
             >
                 
                 
-                <div className="text-center space-y-2">
-                    <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold">
-                        Interview Results
-                    </h1>
-                    <p className="text-slate-400 text-sm md:text-base">
-                        Detailed analysis of your performance
-                    </p>
+                <div className="text-center space-y-3">
+                    <div className='mb-6 space-y-2'>
+                        <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold">
+                            Interview Results
+                        </h1>
+                        <p className="text-slate-400 text-sm md:text-base">
+                            Detailed analysis of your performance
+                        </p>
+                    </div>
                     
                     {/* Overall Score Card */}
-                    <Card className="bg-slate-950/70 border-slate-800 max-w-3xl mx-auto shadow-[0_0_20px_rgba(99,10,251,0.28)]">
+                    <Card className=" bg-slate-950/70 border-slate-800 max-w-3xl mx-auto shadow-[0_0_20px_rgba(99,10,251,0.28)]">
                         <CardHeader className="items-center">
                             <CardTitle className="flex text-lg md:text-xl items-center gap-2 text-slate-300">
-                                <TrendingUp size={24} className="text-indigo-600" />
+                                <TrendingUp size={22} className="text-indigo-600" />
                                 Overall Performance
                             </CardTitle>
                         </CardHeader>
@@ -131,9 +133,9 @@ const Feedback = () => {
                                         </li>
                                     ) : (
                                         currentInterview.overallFeedback.improvementTips.map((item, index) => (
-                                            <li key={index} className="flex items-start gap-3">
-                                                <div className="w-2 h-2 bg-red-500 rounded-full mt-2"></div>
-                                                <span className="text-slate-300">{item}</span>
+                                            <li key={index} className="flex gap-3 pl-4">
+                                                <span className="w-2 h-2 mt-2 bg-red-500/70 rounded-full shrink-0 self-start"></span>
+                                                <span className="text-slate-300 leading-relaxed">{item}</span>
                                             </li>
                                         ))
                                     )}
@@ -157,9 +159,9 @@ const Feedback = () => {
                                         </li>
                                     ) : (
                                         currentInterview.overallFeedback.strengths.map((item, index) => (
-                                            <li key={index} className="flex items-start gap-3">
-                                                <div className="w-2 h-2 bg-emerald-500 rounded-full mt-2"></div>
-                                                <span className="text-slate-300">{item}</span>
+                                            <li key={index} className="flex gap-3 pl-4">
+                                                <div className="w-2 h-2 bg-emerald-500 rounded-full mt-2 shrink-0 self-start"></div>
+                                                <span className="text-slate-300 leading-relaxed">{item}</span>
                                             </li>
                                         ))
                                     )}
@@ -169,48 +171,48 @@ const Feedback = () => {
                     </div>
 
                     {/* Question-wise Analysis */}
-                    <Card className="bg-slate-950/70 border-slate-800 mb-8 mx-32 backdrop-blur-sm shadow-[0_0_20px_rgba(99,10,251,0.28)] p-4">
+                    <Card className="bg-slate-950/70 border-slate-800 mb-8 mx-auto max-w-5xl backdrop-blur-sm shadow-[0_0_20px_rgba(99,10,251,0.28)] p-4">
                         <CardHeader>
-                            <CardTitle className="text-center text-3xl font-medium text-indigo-600 mb-2">Question-wise Analysis</CardTitle>
+                            <CardTitle className="text-center text-xl md:text-2xl font-medium text-indigo-500 mb-2">Question-wise Analysis</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-6">
                             {currentInterview.questions.map((q, index) => (
                                 <div key={index} className="flex flex-col gap-2 border-b border-slate-800 pb-4 last:border-0">
                                     
                                     {/* Question-Text */}
-                                    <div className="flex justify-between items-start mb-2">
-                                        <h3 className="font-medium text-white text-xl">
+                                    <div className="flex justify-between mb-2 gap-4">
+                                        <h3 className="font-medium text-white text-left text-xl">
                                             Q{index + 1}: {q.questionObj.qtxt}
                                         </h3>
                                         <Badge 
-                                            className={`px-2 text-sm font-semibold text-center text-slate-200
-                                                ${q.feedbackObj.score >= 8 ? 'bg-emerald-500' : 
-                                                    q.feedbackObj.score >= 6 ? 'bg-amber-500/90' : 'bg-red-500/90'}`}
+                                            className={`w-8 h-7 mt-0.5 text-sm font-semibold shrink-0 flex items-center justify-center
+                                                ${q.feedbackObj.score >= 8 ? 'bg-emerald-500/10 border-emrald-600 text-emerald-500' : 
+                                                    q.feedbackObj.score >= 6 ? 'bg-amber-500/10 text-amber-400/90 border-amber-500' : 'bg-red-500/10 text-red-400 border-red-500/30'}`}
                                         >
                                             {q.feedbackObj.score}
                                         </Badge>
                                     </div>
 
                                     {/* Summary */}
-                                    <p className="flex items-start gap-2 text-slate-400 text-sm">
-                                        <MessageSquareText size={16} className='text-indigo-600 mt-[3px] shrink-0'/>
+                                    <p className="flex gap-2 text-slate-400 text-left text-sm leading-relaxed ml-1">
+                                        <MessageSquareText size={16} className='text-indigo-600 mt-1 shrink-0'/>
                                         <span>
-                                            <span className='text-slate-200 font-medium'>Summary: </span> 
+                                            <strong className='text-slate-200 font-medium'>Summary: </strong>{" "}
                                             {q.feedbackObj.summary}
                                         </span>
                                     </p>
 
                                     {/* Ideal Answer */}
-                                    <p className="flex items-start gap-2 text-slate-400 text-sm">
-                                        <Sparkle size={16} className='text-fuchsia-400 mt-[3px] shrink-0' />
+                                    <p className="flex items-start gap-2 text-left text-slate-400 text-sm ml-1">
+                                        <Sparkle size={16} className='text-fuchsia-400 mt-1 shrink-0' />
                                         <span>
-                                            <span className='text-slate-200 font-medium'>Ideal Answer: </span> 
+                                            <strong className='text-slate-200 font-medium'>Ideal Answer: </strong>{" "} 
                                             {q.feedbackObj.idealAnswer}
                                         </span>
                                     </p>
 
                                     {/* Strengths */}
-                                    <div className='flex items-start gap-2 text-slate-400 text-sm'>
+                                    <div className='flex items-start gap-2 text-slate-400 text-sm ml-1'>
                                         <CheckCircle2 size={16} className='text-emerald-500 mt-[2px] shrink-0' />
                                         <div>
                                             <span className='text-slate-200 font-medium'>
@@ -234,7 +236,7 @@ const Feedback = () => {
                                     </div>
 
                                     {/* Improvement Tips */}
-                                    <div className="flex items-start gap-2 text-slate-400 text-sm">
+                                    <div className="flex items-start gap-2 text-slate-400 text-sm ml-1">
                                         <AlertCircle size={16} className='text-amber-400 mt-[2px] shrink-0' />
                                         <div>
                                             <span className='text-slate-200 font-medium'>
@@ -262,12 +264,12 @@ const Feedback = () => {
                     
 
                     {/* Action Buttons */}
-                    <div className="flex gap-4 justify-center">
-                        <Button className="bg-indigo-600 hover:bg-indigo-800 text-slate-200">
+                    <div className="flex flex-col md:flex-row gap-4 justify-center">
+                        <Button className="bg-indigo-600 hover:bg-indigo-800 text-slate-200 border-2 border-indigo-950">
                             Download Detailed Report
                         </Button>
                         
-                        <Button className="border-slate-950 border text-indigo-600 bg-slate-950/70 font-bold hover:bg-slate-950 hover:border hover:border-indigo-700 shadow-[0_0_20px_rgba(99,10,251,0.28)]"
+                        <Button className="border-slate-950 border text-indigo-400 bg-slate-950/70 font-bold hover:bg-slate-950 hover:border hover:border-indigo-700 shadow-[0_0_20px_rgba(99,10,251,0.28)]"
                             onClick={() => navigate("/dashboard")}>
                             Back to Dashboard
                         </Button>

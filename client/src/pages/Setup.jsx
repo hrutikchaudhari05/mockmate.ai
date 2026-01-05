@@ -160,7 +160,7 @@ const Setup = ({onClose}) => {
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Outer Div - made only for managing the H and W of box */}
-                <div className="bg-slate-950 border border-slate-800 rounded-xl w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-3xl max-h-[90vh] overflow-y-auto mt-6 shadow-[0_0_20px_rgba(99,102,251,0.38)]">
+                <div className="bg-slate-950 border border-slate-800 rounded-xl w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-3xl max-h-[90vh] overflow-y-auto mt-6  shadow-[0_0_20px_rgba(99,102,251,0.38)]">
 
                     {/* div inside outer div - responsible for padding */}
                     <div className='px-4 sm:px-6 md:px-8 py-4'>
@@ -216,7 +216,10 @@ const Setup = ({onClose}) => {
                                     <SelectTrigger className="bg-transparent border-0 border-l rounded-none border-slate-500 text-center justify-center focus:ring-0 focus:ring-offset-0 focus:outline-none ring-0 ring-offset-0 ouline-none w-full data-[placeholder]:text-slate-500">
                                         <SelectValue className='justify-center placeholder:text-slate-500 ' placeholder="Your Interview Type... e.g. Tech" />
                                     </SelectTrigger>
-                                    <SelectContent className="bg-slate-900 text-white border border-slate-600 ">
+                                    <SelectContent 
+                                        className="bg-slate-900 text-white border border-slate-600 "
+                                        position="popper"
+                                    >
                                         <SelectItem
                                             value="tech"
                                             className="
