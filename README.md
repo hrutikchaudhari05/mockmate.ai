@@ -1,7 +1,7 @@
 
 # MockMate 🚀
 
-![GitHub repo size](https://img.shields.io/github/repo-size/hrutikchaudhari05/mockmate)
+![GitHub repo size](https://img.shields.io/github/repo-size/hrutikchaudhari05/mockmate.ai)
 ![GitHub stars](https://img.shields.io/github/stars/<your-username>/mockmate?style=social)
 ![GitHub license](https://img.shields.io/github/license/<your-username>/mockmate)
 ![Made with MERN](https://img.shields.io/badge/MERN-Stack-green)
