@@ -1,7 +1,7 @@
 
 # MockMate 🚀
 
-![GitHub repo size](https://img.shields.io/github/repo-size/<your-username>/mockmate)
+![GitHub repo size](https://img.shields.io/github/repo-size/hrutikchaudhari05/mockmate)
 ![GitHub stars](https://img.shields.io/github/stars/<your-username>/mockmate?style=social)
 ![GitHub license](https://img.shields.io/github/license/<your-username>/mockmate)
 ![Made with MERN](https://img.shields.io/badge/MERN-Stack-green)
@@ -53,18 +53,8 @@
 
 ---
 
-## 🎬 Demo / Screenshots
-
-![MockMate Screenshot](https://via.placeholder.com/800x400.png?text=MockMate+Screenshot+Here)
+## 🎬 Demo 
 
 Try the platform live: [Demo Link](#)  
 
 ---
-
-## ⚡ Installation & Setup
-
-### 1. Clone the repo
-```bash
-git clone <repo-url>
-cd MockMate
-
