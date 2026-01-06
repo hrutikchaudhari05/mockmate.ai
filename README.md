@@ -55,7 +55,7 @@ Built to help job seekers practice interviews under real-world conditions, MockM
 ## Tech Stack
 
 - **Frontend:** React, TailwindCSS, Shadcn, Lucide-react, Redux Toolkit, Vite  
-- **Backend:** Node.js, Express.js, MongoDB, Firebase Admin  
+- **Backend:** Node.js, Express.js, MongoDB  
 - **AI & Voice Processing:** OpenAI, AssemblyAI  
 - **Utilities:** Express-validator, Cloudinary, Multer, Bcrypt, JWT, Cors  
 
