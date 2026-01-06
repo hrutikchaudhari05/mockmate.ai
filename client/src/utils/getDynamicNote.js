@@ -1,7 +1,7 @@
 export const getDynamicNote = ({ difficulty, type, expectedWords }) => {
   const notes = [];
 
-  // 1️⃣ Difficulty-based guidance
+  // Difficulty-based guidance
   if (difficulty === "advanced") {
     notes.push(
       "Focus on depth and trade-offs. Mention edge cases and justify your choices."
@@ -20,7 +20,7 @@ export const getDynamicNote = ({ difficulty, type, expectedWords }) => {
     );
   }
 
-  // 2️⃣ Question type guidance
+  // Question type guidance
   switch (type) {
     case "conceptual":
       notes.push(
@@ -56,7 +56,7 @@ export const getDynamicNote = ({ difficulty, type, expectedWords }) => {
       break;
   }
 
-  // 3️⃣ Expected word count guidance
+  // Expected word count guidance
   const maxWords = Number(expectedWords);
 
   if (!Number.isNaN(maxWords)) {
@@ -75,12 +75,12 @@ export const getDynamicNote = ({ difficulty, type, expectedWords }) => {
     }
   }
 
-  // 4️⃣ Final safety net (guarantee at least one note)
+  // Final safety net (guarantee at least one note)
   if (notes.length === 0) {
     return "Answer thoughtfully and explain your reasoning clearly.";
   }
 
-  // 🎯 Return ONE strong, combined note
+  // Return ONE strong, combined note
   return notes.slice(0, 2).join(" ");
 };
  

@@ -14,13 +14,6 @@ const InterviewRoom = () => {
     const { interviewId } = useParams();
     console.log('Interview ID: ', interviewId);
     
-
-    // const [stream, setStream] = useState(null); 
-    // preInterviewScreen me user media permissions dega wo store 
-    // Stream Notes:
-    // user ke diye huye permissions ko store karta hai, aur hum isse as a prop pass karte hai next component me, fir ye next page pr user se firse permissions nhi maagte
-    // actuall ye user ko hrr page pr permissions firse naa maage isliye use hota hai 
-
     // fetch currentInterview from redux state 
     const { mediaStream, currentInterview, interviewLoading } = useSelector(state => state.interview);
 
@@ -88,10 +81,7 @@ const InterviewRoom = () => {
     console.log('Stage:', stage);
     console.log(localStorage.getItem('token'))
 
-    /*
-     * Candidate must be able to build, test, deploy and maintain AI models, AI agents. Also must be fundamentally strong in AI logics and architectures.
-Skills: Data, ML, DL, NLP, LLM, Transformers, Python, SQL, Vector Databases, etc
-    */
+    
 
 
     return (

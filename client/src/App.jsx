@@ -24,7 +24,7 @@ import Setup from './pages/Setup'
 import Layout from './components/Layout'
 import LoadingScreen from './components/LoadingScreen'
 
-/* -------------------- Auth Wrappers -------------------- */
+/* Auth Wrappers */
 
 const AuthenticatedRoute = ({ children }) => {
   const { isAuthenticated } = useSelector(state => state.auth)
@@ -47,7 +47,7 @@ const InterviewAuthWrapper = ({ children }) => {
   return children
 }
 
-/* -------------------- Animated Routes -------------------- */
+/* Animated Routes */
 
 const AnimatedRoutes = () => {
   const location = useLocation()
@@ -123,7 +123,7 @@ const AnimatedRoutes = () => {
   )
 }
 
-/* -------------------- App -------------------- */
+/* App */
 
 function App() {
   const dispatch = useDispatch()

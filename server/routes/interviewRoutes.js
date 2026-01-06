@@ -29,38 +29,3 @@ router.post('/test-upload', (req, res) => {
 
 module.exports = router;
 
-
-
-
-
-
-
-// testing route 
-router.get('/test', (req, res) => {
-    res.json({ 
-        message: "Interview routes working!",
-        userId: req.user.id 
-    });
-});
-
-// testing routes ko middleware use ke pehle likha so tha ye muze access naa maage, 
-router.post('/test-ai', async (req, res) => {
-    try {
-        const testData = {
-            jobDescription: 'Machine Learning, Deep Learning, NLP, LLM, AI, JD - candidate must create an entire model and will be responsible for deploying it in production as well',
-            title: "AI/ML Engineer", 
-            type: 'technical',
-            duration: 2700,
-            experience: 'associate level (2-3 years of experience)',
-            interviewContext: 'Focus on core fundamentals and problem solving in AI',
-            targetCompanies: "Perplexity, OpenAI, Google"
-        }
-
-        const questions = await generateAIQuestions(testData);
-        res.send({ questions });
-
-    } catch (error) {
-        res.status(500).send({ error: error.message });
-    }
-});
-

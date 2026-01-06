@@ -588,14 +588,14 @@ const ActualInterviewScreen = () => {
                                     <span className='text-green-400 text-sm'>✓ Audio saved</span>
                                 )}
 
-                                <Button 
+                                {/* <Button 
                                     onClick={playAudio}
                                     disabled={isConverting || isLoading}
                                     className="border-slate-700 border text-slate-400 bg-slate-950/80 font-bold hover:bg-slate-950 hover:border hover:border-indigo-700/80 hover:text-indigo-500"
                                 >
                                     <Headphones className='text-indigo-500/80' />
                                     Test Audio
-                                </Button>
+                                </Button> */}
                                 
                             </div>
 
@@ -603,7 +603,7 @@ const ActualInterviewScreen = () => {
                             <Button
                                 disabled={isLoading || isConverting}
                                 onClick={handleSubmit}
-                                className="border-slate-700 border text-slate-400 bg-slate-950/80 font-bold hover:bg-slate-950 hover:border hover:border-indigo-700/80 hover:text-indigo-500"
+                                className="border-slate-700 border text-slate-400 bg-slate-950/80 font-bold hover:bg-slate-950 hover:border hover:border-indigo-500/80 hover:text-indigo-400"
                                 
                             >
                                 {currQueIndex >= currentInterview?.questions.length - 1 

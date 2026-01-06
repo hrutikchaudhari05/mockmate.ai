@@ -410,42 +410,6 @@ const evaluateInterview = async (req, res) => {
     }
 };
 
-// get evaluation result
-// const getFeedback = async (req, res) => {
-//     try {
-//         // pehle interview ko le lo backend se 
-//         const interview = await InterviewSession.findById(req.params.interviewId);
-
-//         // check if interview is present or not 
-//         if (!interview) {
-//             return res.status(404).send({ error: 'Interview not found' });
-//         }
-
-//         // check if interview belongs to the user 
-//         if (interview.user.toString() !== req.user.id) {
-//             return res.status(403).send({ error: 'Unauthorized' });
-//         }
-
-//         // check if iterview is evaluated first or not 
-//         if (!interview.feedbackGeneratedAt) {
-//             return res.status(404).send({ error: 'Feedback not generated yet' });
-//         }
-
-//         // ab actual kaam chalu karte hai 
-//         res.send({
-//             success: true,
-//             feedback: {
-//                 overall: interview.overallFeedback,
-//                 questions: interview.questions.map(q => ({
-//                     feedback: q.feedbackObj
-//                 })) 
-//             }
-//         });
-
-//     } catch (error) {
-//         return res.status(500).send({ error: error.message });
-//     }
-// }
 
 
 

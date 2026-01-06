@@ -25,14 +25,6 @@ const Dashboard = () => {
     // Redux se data liya - allInterviews List and other states 
     //const { interviews, interviewsLoading, interviewsError } = useSelector((state) => state.interview);
     const user = useSelector((state) => state.auth.user);
-
-    // state to make Setup visible/invisible
-    // const [showSetup, setShowSetup] = useState(false);
-
-    // Close function banayi
-    // const handleCloseSetup = () => {
-    //     setShowSetup(false);
-    // };
     
     useEffect(() => {
         if (user) {
@@ -148,12 +140,6 @@ const Dashboard = () => {
                 </div>
 
             </motion.div>
-
-            {/* <AnimatePresence>
-                {showSetup && (
-                    <Setup onClose={handleCloseSetup} />
-                )}
-            </AnimatePresence> */}
             
         </div>
 
