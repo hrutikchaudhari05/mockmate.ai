@@ -2,8 +2,6 @@
 # MockMate 🚀
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/hrutikchaudhari05/mockmate.ai)
-![GitHub stars](https://img.shields.io/github/stars/hrutikchaudhari05/mockmate.ai?style=social)
-![GitHub license](https://img.shields.io/github/license/hrutikchaudhari05/mockmate.ai)
 ![Made with MERN](https://img.shields.io/badge/MERN-Stack-green)
 
 **MockMate** is a realistic AI-powered mock interview platform that simulates real interview pressure, evaluates your answers deeply, and tells you exactly where you stand.  
