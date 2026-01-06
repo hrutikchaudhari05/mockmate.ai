@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mic, Headphones, AlertTriangle, Clock, Monitor, Layers, Info, BarChart3, Timer, Type } from 'lucide-react';
+import { Mic, Ban, Headphones, AlertTriangle, Clock, Monitor, Layers, Info, BarChart3, Timer, Type } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 // redux imports 
@@ -57,7 +57,7 @@ const PreInterviewScreen = ({onStart}) => {
 
     // isStarting state for knowing the timer that insterview is getting started
     const [isStarting, setIsStarting] = useState(false);    // to disable the button for preventing double clicks
-    const [countdown, setCountdown] = useState(60);  // to display on the screen
+    const [countdown, setCountdown] = useState(5);  // to display on the screen
     // const [mediaStream, setMediaStream] = useState(null);   // sirf cleanup ke liye - jb current component unmount hoga tb mediaStream bhi stop kr do
     // actually mediaStream ek object store karta hai named stream ( jisme user ke media permissions stored hote hai )
 
@@ -213,6 +213,7 @@ const PreInterviewScreen = ({onStart}) => {
                             <Rule icon={Clock} text="The timer cannot be paused once the interview starts." />
                             <Rule icon={Layers} text="Only one question is shown at a time." />
                             <Rule icon={Monitor} text="The interview starts automatically after the countdown." />
+                            <Rule icon={Ban} text="Once the countdown starts, you cannot go back." />
                         </section>
                     </div>
 
@@ -221,13 +222,13 @@ const PreInterviewScreen = ({onStart}) => {
                     {/* Answer Guidance */}
                     <section className="space-y-1 text-md text-slate-300 mb-6 ml-1">
                         <p className="font-medium text-white flex items-center gap-2">
-                            <Info className="w-4 h-4 text-amber-400/80" />
+                            <Info className="w-4 h-4  text-amber-400/80" />
                             Answering Questions
                         </p>
 
                         <ul className="space-y-1.5">
                             <li className="flex items-start gap-2">
-                            <BarChart3 className="w-4 h-4 mt-0.5 text-indigo-400 shrink-0" />
+                            <BarChart3 className="w-4 h-4 mt-1 text-indigo-400 shrink-0" />
                             <span>
                                 Each question includes metadata like type, difficulty, estimated time,
                                 and suggested word count.
@@ -235,21 +236,21 @@ const PreInterviewScreen = ({onStart}) => {
                             </li>
 
                             <li className="flex items-start gap-2">
-                            <Timer className="w-4 h-4 mt-0.5 text-indigo-400 shrink-0" />
+                            <Timer className="w-4 h-4 mt-1 text-indigo-400 shrink-0" />
                             <span>
                                 Use this information to structure your answer effectively.
                             </span>
                             </li>
 
                             <li className="flex items-start gap-2">
-                            <Mic className="w-4 h-4 mt-0.5 text-indigo-400 shrink-0" />
+                            <Mic className="w-4 h-4 mt-1 text-indigo-400 shrink-0" />
                             <span>
                                 Audio attempts are limited per question.
                             </span>
                             </li>
 
                             <li className="flex items-start gap-2">
-                            <Type className="w-4 h-4 mt-0.5 text-indigo-400 shrink-0" />
+                            <Type className="w-4 h-4 mt-1 text-indigo-400 shrink-0" />
                             <span>
                                 Typed answers can be edited freely.
                             </span>

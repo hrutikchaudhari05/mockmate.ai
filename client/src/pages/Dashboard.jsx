@@ -10,16 +10,13 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 
 // import Setup component for setting up interview 
-import Setup from './Setup';
+// import Setup from './Setup';
 
 // Framer Motion 
 import {motion, AnimatePresence} from 'framer-motion';
 import { fetchAllInterviews } from '@/store/interviewSlice';
 
 import { formatDate } from '@/utils/formatDate';
-
-
-
 
 const Dashboard = () => {
     const dispatch = useDispatch();
@@ -30,12 +27,12 @@ const Dashboard = () => {
     const user = useSelector((state) => state.auth.user);
 
     // state to make Setup visible/invisible
-    const [showSetup, setShowSetup] = useState(false);
+    // const [showSetup, setShowSetup] = useState(false);
 
     // Close function banayi
-    const handleCloseSetup = () => {
-        setShowSetup(false);
-    };
+    // const handleCloseSetup = () => {
+    //     setShowSetup(false);
+    // };
     
     useEffect(() => {
         if (user) {
@@ -63,10 +60,8 @@ const Dashboard = () => {
 
             {/* Ye div responsible hai pure dashboard page ko blur karne ke liye */}
             <motion.div
-                animate={{ 
-                    filter: showSetup ? 'blur(4px)' : 'blur(0px)',
-                    scale: showSetup ? 0.98 : 1 
-                }}
+                initial={{ y: 18, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.3 }}
                 className='space-y-8'
             >
@@ -94,7 +89,7 @@ const Dashboard = () => {
                     <p className='text-slate-300 font-bold text-lg sm:text-xl md:text-2xl lg:text-3xl'>Ready for your next challenge?</p>
                     <Button
                         className="bg-indigo-600 hover:bg-indigo-700 px-6 py-3 text-sm sm:text-base md:text-lg"
-                        onClick={() => setShowSetup(true)}
+                        onClick={() => navigate('/setup-interview')}
                     >
                         <Play size={40} className='mr-3' /> 
                         Start New Interview
@@ -106,7 +101,7 @@ const Dashboard = () => {
                         <CardHeader>
                             <CardTitle className="text-white text-center text-xl md:text-2xl">Recent Interwiew Performances</CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-4 w-full overflow-x-auto">
+                        <CardContent className="space-y-4 w-full overflow-x-auto custom-scrollbar">
                             {allInterviewsList.count <= 0 
                                 ? <p className='text-slate-200 font-semibold'>There are no interviews...!</p> 
                                 : (
@@ -154,11 +149,11 @@ const Dashboard = () => {
 
             </motion.div>
 
-            <AnimatePresence>
+            {/* <AnimatePresence>
                 {showSetup && (
                     <Setup onClose={handleCloseSetup} />
                 )}
-            </AnimatePresence>
+            </AnimatePresence> */}
             
         </div>
 

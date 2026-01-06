@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {motion, useAnimation} from 'framer-motion';
 
 // redux imports 
@@ -18,9 +18,8 @@ import { AlertCircle } from 'lucide-react';
 
 
 
-const Setup = ({onClose}) => {
+const Setup = () => {
 
-    // const controls = useAnimation();
 
     // first of all dispatch 
     const dispatch = useDispatch();
@@ -56,6 +55,11 @@ const Setup = ({onClose}) => {
         targetCompanies: 120,
         interviewContext: 300
     }
+
+    const handleCloseSetup = () => {
+        setValidation({ hasError: false, emptyFields: {}, firstError: null });
+        navigate('/dashboard');
+    };
 
     // handleChange function for taking valus in Input and Textarea 
     const handleChange = (field, value) => {
@@ -102,15 +106,12 @@ const Setup = ({onClose}) => {
             console.log('Interview created, ID:', interviewId);
 
             if (interviewId) {
-                onClose();
                 navigate(`/interview-room/${interviewId}`);
             } else {
                 console.error('Interview ID missing:', res.payload);
-                onClose()
+                navigate('/dashboard');
             }
-        } else {
-            onClose();
-        }
+        } 
     }
 
     
@@ -140,27 +141,18 @@ const Setup = ({onClose}) => {
 
     };
 
+
+
     return (
         <>
-            {/* Backdrop/Overlay - Pure screen cover karega, Iss code ka popup ke saath kuchh lena dena nhi hai, ye bss overlay (ek screen lagata hai dashboard aur popup ke bich me) */}
-            <motion.div
-                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                style={{ pointerEvents: 'auto' }} // IMPORTANT: Scroll allow karega
-            />
             
-            {/* Popup - Center mein fixed */}
             <motion.div
-                className="fixed inset-0 z-50 flex items-center justify-center p-4" 
-                initial={{ opacity: 0, scale: 0.8 }}
+                initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
-                onClick={(e) => e.stopPropagation()}
             >
                 {/* Outer Div - made only for managing the H and W of box */}
-                <div className="bg-slate-950 border border-slate-800 rounded-xl w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-3xl max-h-[90vh] overflow-y-auto mt-6  shadow-[0_0_20px_rgba(99,102,251,0.38)]">
+                <div className="mx-auto bg-slate-950 border border-slate-800 rounded-xl w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-3xl mt-6 shadow-[0_0_20px_rgba(99,102,251,0.38)]">
 
                     {/* div inside outer div - responsible for padding */}
                     <div className='px-4 sm:px-6 md:px-8 py-4'>
@@ -211,7 +203,6 @@ const Setup = ({onClose}) => {
                                 <Select
                                     value={formData.type}
                                     onValueChange={(value) => handleChange('type', value)}
-                                    
                                 >
                                     <SelectTrigger className="bg-transparent border-0 border-l rounded-none border-slate-500 text-center justify-center focus:ring-0 focus:ring-offset-0 focus:outline-none ring-0 ring-offset-0 ouline-none w-full data-[placeholder]:text-slate-500">
                                         <SelectValue className='justify-center placeholder:text-slate-500 ' placeholder="Your Interview Type... e.g. Tech" />
@@ -219,6 +210,8 @@ const Setup = ({onClose}) => {
                                     <SelectContent 
                                         className="bg-slate-900 text-white border border-slate-600 "
                                         position="popper"
+                                        sideOffset={4}
+                                        avoidCollisions={false}
                                     >
                                         <SelectItem
                                             value="tech"
@@ -267,12 +260,16 @@ const Setup = ({onClose}) => {
                                 <Select
                                     value={formData.experience}
                                     onValueChange={(value) => handleChange('experience', value)}
-                                    
                                 >
                                     <SelectTrigger className="bg-transparent border-0 border-l rounded-none border-slate-500 text-center justify-center focus:ring-0 focus:ring-offset-0 focus:outline-none ring-0 ring-offset-0 ouline-none w-full data-[placeholder]:text-slate-500">
                                         <SelectValue className='justify-center ' placeholder="Experience Level... e.g. 3-5 years (Associate)" />
                                     </SelectTrigger>
-                                    <SelectContent className="bg-slate-900 text-white border border-slate-600">
+                                    <SelectContent 
+                                        className="bg-slate-900 text-white border border-slate-600"
+                                        position="popper"
+                                        sideOffset={4}
+                                        avoidCollisions={false}
+                                    >
                                         <SelectItem
                                             value="intern"
                                             className="
@@ -338,12 +335,16 @@ const Setup = ({onClose}) => {
                                 <Select
                                     value={formData.duration ? formData.duration.toString() : ""}
                                     onValueChange={(value) => handleChange('duration', Number(value))}
-                                    
                                 >
                                     <SelectTrigger className="bg-transparent border-0 border-l rounded-none border-slate-500 text-center justify-center focus:ring-0 focus:ring-offset-0 focus:outline-none ring-0 ring-offset-0 ouline-none w-full data-[placeholder]:text-slate-500">
                                         <SelectValue className='justify-center ' placeholder="Interview Duration... e.g. 60 mins (Full Simulation)" />
                                     </SelectTrigger>
-                                    <SelectContent className="bg-slate-900 text-white border border-slate-600">
+                                    <SelectContent 
+                                        className="bg-slate-900 text-white border border-slate-600"
+                                        position="popper"
+                                        sideOffset={4}
+                                        avoidCollisions={false}
+                                    >
                                         <SelectItem
                                             value="15"
                                             className="
@@ -409,7 +410,7 @@ const Setup = ({onClose}) => {
                                         height: '42px',
                                         minHeight: '42px',
                                         maxHeight: '200px',
-                                        overflowY: 'auto', 
+                                        overflowY: 'hidden', 
                                     }}
                                     maxLength={1000}
                                     value={formData.jobDescription}
@@ -488,7 +489,8 @@ const Setup = ({onClose}) => {
 
                                 <div className='flex flex-row gap-4 items-center justify-end sm:justify-center h-12'>
                                     <Button 
-                                        onClick={onClose}
+                                        type="button"
+                                        onClick={handleCloseSetup}
                                         className="w-full sm:w-auto border-slate-950 border text-indigo-600 bg-slate-900 font-bold hover:bg-slate-950 hover:border hover:border-indigo-700"
                                     >
                                         Cancel
