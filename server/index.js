@@ -42,6 +42,8 @@ app.get('/', (req, res) => {
 });
 
 
-app.listen(process.env.PORT, () => {
-    console.log(`Server chalu ho gya http://localhost:${process.env.PORT} par`);
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
