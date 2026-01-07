@@ -11,6 +11,8 @@ connectDB();
 // start the express app
 const app = express();
 
+app.set('trust proxy', 1);
+
 // middlewares
 app.use(cors());    // frontend-backend communication me frontend ko access dene ke liye
 app.use(express.json());    // req.body me kaa JSON data handle karne ke liye

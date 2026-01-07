@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
-
+import { API } from '@/api/api.';
 
 // Login ke liye async thunk 
 // Thunks backend calls handle karte hain aur Redux ko data dete hain.
@@ -15,7 +15,7 @@ export const loginUser = createAsyncThunk(
 
             // Axios se API call karte hai
             const response = await axios.post(
-                'http://localhost:5000/api/users/login',    // API URL
+                `${API}/api/users/login`,    // API URL
                 {email, password}                           // Data - automatically JSON bn jaata hai
             );
 
@@ -40,7 +40,7 @@ export const registerUser = createAsyncThunk(
         try {
 
             const response = await axios.post(
-                'http://localhost:5000/api/users/register', 
+                `${API}/api/users/register`, 
                 userData
             );
 

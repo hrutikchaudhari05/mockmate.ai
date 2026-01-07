@@ -1,6 +1,8 @@
 import { uploadAudioToCloudinary } from '@/utils/cloudinaryUpload';
 import { createSlice } from '@reduxjs/toolkit';
 
+import { API } from '@/api/api.';
+
 // imports for thunk and api calls
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
@@ -11,7 +13,7 @@ export const fetchAllInterviews = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             const response = await axios.get(
-                'http://localhost:5000/api/interviews/interviews',
+                `${API}/api/interviews/interviews`,
                 {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -36,7 +38,7 @@ export const createInterview = createAsyncThunk(
         try {
             // API Call logic
             const response = await axios.post(
-                'http://localhost:5000/api/interviews/create',  // ye url hum ne backend me banaya hai jo interview create karta hain and interviewSession model me currentInterview details store karta hai
+                `${API}/api/interviews/create`,  // ye url hum ne backend me banaya hai jo interview create karta hain and interviewSession model me currentInterview details store karta hai
                 formData,   // jo data user ne fill kiya hai setup ke time 
                 {
                     headers: {  // req ke headers me hum logged-in user ka token dete hai, actually humne token localStorage me store karke rakha hota hai already in extraReducer actions of auth thunk
@@ -63,7 +65,7 @@ export const fetchInterviewById = createAsyncThunk(
     async (interviewId, { rejectWithValue }) => {
         try {
             const response = await axios.get(
-                `http://localhost:5000/api/interviews/${interviewId}`,
+                `${API}/api/interviews/${interviewId}`,
                 {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -83,7 +85,7 @@ export const generateQuestionsT = createAsyncThunk(
     async (interviewId, { rejectWithValue }) => {
         try {
             const response = await axios.post(
-                `http://localhost:5000/api/interviews/${interviewId}/generate-questions`, {},
+                `${API}/api/interviews/${interviewId}/generate-questions`, {},
                 {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -110,7 +112,7 @@ export const beginInterview = createAsyncThunk(
     async (interviewId, { rejectWithValue }) => {
         try {
             const response = await axios.post(
-                `http://localhost:5000/api/interviews/${interviewId}/begin`, {},
+                `${API}/api/interviews/${interviewId}/begin`, {},
                 {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -147,7 +149,7 @@ export const getTranscriptT = createAsyncThunk(
             
             // ab actual request karte hai 
             const response = await axios.post(
-                `http://localhost:5000/api/interviews/${interviewId}/audio`,
+                `${API}/api/interviews/${interviewId}/audio`,
                 {
                     audioUrl: cloudinaryUrl,
                     questionIndex: currQueIndex
@@ -180,7 +182,7 @@ export const submitAnswer = createAsyncThunk(
     async ({ interviewId, answerText, audioUrl }, { rejectWithValue }) => {
         try {
             const response = await axios.post(
-                `http://localhost:5000/api/interviews/${interviewId}/submit`,
+                `${API}/api/interviews/${interviewId}/submit`,
                 { answerText, audioUrl },
                 {
                     headers: {
@@ -201,7 +203,7 @@ export const evaluateInverview = createAsyncThunk(
     async (interviewId, { rejectWithValue }) => {
         try {
             const response = await axios.post(
-                `http://localhost:5000/api/interviews/${interviewId}/evaluate`, 
+                `${API}/api/interviews/${interviewId}/evaluate`, 
                 {},
                 {
                     headers: {
