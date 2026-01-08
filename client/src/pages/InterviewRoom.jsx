@@ -81,8 +81,10 @@ const InterviewRoom = () => {
     useEffect(() => {
         // ONLY generate if interview exists AND has no questions
         if (currentInterview?.questions?.length === 0){
-            console.log("Generating questions for interview: ", interviewId);
-            dispatch(generateQuestionsT(interviewId));
+            setTimeout(() => {
+                console.log("Generating questions for interview: ", interviewId);
+                dispatch(generateQuestionsT(interviewId));
+            }, 2000);
         }
     }, [currentInterview, interviewId, dispatch]);
 

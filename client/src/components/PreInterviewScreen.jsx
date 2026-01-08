@@ -372,17 +372,11 @@
 
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Mic, Ban, Headphones, AlertTriangle, Clock, Monitor, Layers, Info, BarChart3, Timer, Type } from 'lucide-react';
+import { Mic, Ban, Headphones, AlertTriangle, Clock, Monitor, Layers, Info, BarChart3, Timer, Type, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-// redux imports 
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
-
-// Add these imports
-import { useDispatch } from 'react-redux';
 import { beginInterview, fetchInterviewById, clearCurrentInterview } from '@/store/interviewSlice';
-
 
 const PreInterviewScreen = ({onStart}) => {
     const dispatch = useDispatch();
@@ -391,94 +385,134 @@ const PreInterviewScreen = ({onStart}) => {
     const [showFullscreenBtn, setShowFullscreenBtn] = useState(false);
     const [localStream, setLocalStream] = useState(null);
     const [showCountdown, setShowCountdown] = useState(false);
+    const [statusMessage, setStatusMessage] = useState('');
+    const [canStart, setCanStart] = useState(true);
 
-    // useRef to limit showFullScreenBtn appearance 
     const retryCountRef = useRef(0);
     const MAX_RETRIES = 2;
-    const prevInterviewIdRef = useRef(null); // Track previous interview ID
+    const prevInterviewIdRef = useRef(null);
 
     const { interviewId } = useParams();
+    const { currentInterview, interviewLoading } = useSelector((state) => state.interview);
 
-    // redux se interview data lo 
-    const { currentInterview, interviewLoading } = useSelector((state) => state.interview)
-    console.log("🔍 Interview Data: ", currentInterview)
-    console.log("📊 Interview ID from URL:", interviewId);
-    console.log("📊 Interview ID from Redux:", currentInterview?._id);
-
+    // 🔄 Fetch interview data
     useEffect(() => {
-        console.log("🔄 PreInterviewScreen useEffect running");
-        console.log("URL Interview ID:", interviewId);
-        console.log("Previous Interview ID:", prevInterviewIdRef.current);
-        
         if (!interviewId) {
-            console.error("No interview ID in URL!");
             navigate('/dashboard');
             return;
         }
         
-        // अगर interviewId change हुआ है या currentInterview नहीं है
         if (interviewId !== prevInterviewIdRef.current || !currentInterview) {
-            console.log("📡 Fetching/Refreshing interview data...");
-            
-            // Update previous ID
             prevInterviewIdRef.current = interviewId;
             
-            // Clear old interview data if IDs mismatch
             if (currentInterview && currentInterview._id !== interviewId) {
-                console.log("❌ Interview ID mismatch! Clearing old data...");
                 dispatch(clearCurrentInterview());
             }
             
-            // Fetch new interview data
             dispatch(fetchInterviewById(interviewId));
         }
-        
     }, [interviewId, currentInterview, dispatch, navigate]);
 
-    // Check interview data validity
+    // ✅ STATUS CHECK - MOST IMPORTANT FIX
     useEffect(() => {
-        if (interviewLoading) return;
+        if (interviewLoading || !currentInterview) return;
         
-        if (!currentInterview && !interviewLoading) {
-            console.warn("No interview data found!");
-            setTimeout(() => {
-                navigate('/dashboard');
-            }, 2000);
-            return;
+        console.log("🔍 Interview Status Check:", {
+            id: currentInterview._id,
+            status: currentInterview.status,
+            questionsCount: currentInterview.questions?.length || 0
+        });
+        
+        // Reset status
+        setCanStart(true);
+        setStatusMessage('');
+        
+        // Handle status
+        switch (currentInterview.status) {
+            case 'setup':
+                // Interview created but questions not generated
+                if (currentInterview.questions?.length === 0) {
+                    setStatusMessage('Questions not generated yet. Please wait...');
+                    setCanStart(false);
+                    
+                    // Auto-generate questions if not present
+                    setTimeout(() => {
+                        console.log("Auto-generating questions...");
+                        // You might want to trigger question generation here
+                    }, 1000);
+                }
+                break;
+                
+            case 'questions_generated':
+                // Ready to start!
+                if (currentInterview.questions?.length > 0) {
+                    setStatusMessage('Ready to start interview!');
+                    setCanStart(true);
+                } else {
+                    setStatusMessage('No questions found. Please try again.');
+                    setCanStart(false);
+                }
+                break;
+                
+            case 'ongoing':
+                // Already started - redirect to interview room
+                setStatusMessage('Interview already in progress. Redirecting...');
+                setCanStart(false);
+                setTimeout(() => {
+                    navigate(`/interview-room/${interviewId}`);
+                }, 1500);
+                break;
+                
+            case 'completed':
+                // Completed but not evaluated
+                setStatusMessage('Interview completed. Redirecting to evaluation...');
+                setCanStart(false);
+                setTimeout(() => {
+                    navigate(`/evaluate/${interviewId}`); // Or auto-evaluate
+                }, 2000);
+                break;
+                
+            case 'evaluated':
+                // Already evaluated - redirect to feedback
+                setStatusMessage('Interview already evaluated. Redirecting to feedback...');
+                setCanStart(false);
+                setTimeout(() => {
+                    navigate(`/feedback/${interviewId}`);
+                }, 1500);
+                break;
+                
+            default:
+                setStatusMessage('Unknown interview status. Please contact support.');
+                setCanStart(false);
         }
         
-        // Double-check ID mismatch
-        if (currentInterview && currentInterview._id !== interviewId) {
-            console.error("CRITICAL: Interview ID still mismatched after fetch!");
-            dispatch(clearCurrentInterview());
-            dispatch(fetchInterviewById(interviewId));
-        }
-    }, [currentInterview, interviewLoading, navigate, interviewId, dispatch]);
-
-    // IMP Metadata with safe access
-    const type = currentInterview?.type || "Technical";
-    const title = currentInterview?.title || "Interview";
-    const experience = currentInterview?.experience || "Intermediate";
-    const duration = currentInterview?.duration ? currentInterview.duration/60 : 30;
-    const totalQuestions = currentInterview?.questions?.length || 0;
-    
-    const [isStarting, setIsStarting] = useState(false);
-    const [countdown, setCountdown] = useState(5);
+    }, [currentInterview, interviewLoading, navigate, interviewId]);
 
     // mic allow permission popup by browser 
     const requestPermissions = async () => {
         try {
-            // First check if interview is evaluated
+            // Final status check before starting
             if (currentInterview?.status === 'evaluated') {
                 alert("This interview is already evaluated!");
                 navigate(`/feedback/${interviewId}`);
                 return;
             }
             
-            // Check if we have the right interview data
-            if (!currentInterview || currentInterview._id !== interviewId) {
-                console.error("Interview data mismatch! Cannot start.");
-                alert("Interview data issue. Please try again.");
+            if (currentInterview?.status === 'ongoing') {
+                alert("Interview already in progress!");
+                navigate(`/interview-room/${interviewId}`);
+                return;
+            }
+            
+            // Check if questions exist
+            if (!currentInterview?.questions || currentInterview.questions.length === 0) {
+                alert("Questions not generated yet. Please wait...");
+                return;
+            }
+            
+            // Check if user can start based on status
+            if (!canStart) {
+                alert(statusMessage);
                 return;
             }
             
@@ -510,11 +544,8 @@ const PreInterviewScreen = ({onStart}) => {
             setCountdown(prev => {
                 if(prev === 1) {
                     clearInterval(timer);
-                    
                     localStorage.setItem('interview_active', 'true');
                     console.log("🚀 Starting interview with stream:", strm);
-                    
-                    // Pass interviewId along with stream
                     onStart(strm, interviewId);
                     return 0;
                 }
@@ -522,28 +553,18 @@ const PreInterviewScreen = ({onStart}) => {
             });
         }, 1000);
 
-        return () => {
-            clearInterval(timer);
-            console.log('Countdown timer cleaned up');
-        };
+        return () => clearInterval(timer);
     };
 
     // Dedicated function for entering in full-screen mode 
     const enterFullScreenAndStart = async () => {
         try {
-            // MIMP: full screen mode sirf user-gesture pr hee enter hota hai
             await document.documentElement.requestFullscreen();
-
-            // Start countdown
             startCountdown(localStream);
-            
-            // Hide fullscreen button
             setShowFullscreenBtn(false);
             retryCountRef.current = 0;
-
         } catch (error) {
             console.log('Full-screen cancelled, starting normally...', error);
-
             if (retryCountRef.current < MAX_RETRIES) {
                 retryCountRef.current += 1;
                 alert(`Full Screen Permission denied! Please allow it to continue... (Attempt ${retryCountRef.current}/${MAX_RETRIES})`);
@@ -557,16 +578,17 @@ const PreInterviewScreen = ({onStart}) => {
         }
     }
 
+    const [isStarting, setIsStarting] = useState(false);
+    const [countdown, setCountdown] = useState(5);
+
     // Custom back navigation warning popup
     useEffect(() => {
         const handlePopState = () => {
             setShowExitConfirm(true);
             window.history.pushState(null, '', window.location.href);
         };
-
         window.history.pushState(null, '', window.location.href);
         window.addEventListener('popstate', handlePopState);
-
         return () => window.removeEventListener('popstate', handlePopState);
     }, []);
 
@@ -579,35 +601,42 @@ const PreInterviewScreen = ({onStart}) => {
             }
         };
     }, [localStream]);
-    
+
+    // IMP Metadata with safe access
+    const type = currentInterview?.type || "Technical";
+    const title = currentInterview?.title || "Interview";
+    const experience = currentInterview?.experience || "Intermediate";
+    const duration = currentInterview?.duration ? currentInterview.duration/60 : 30;
+    const totalQuestions = currentInterview?.questions?.length || 0;
+
     return (
-        <div className='
-            min-h-screen bg-slate-950 text-white
-            flex flex-col items-center px-6 border border-indigo-400
-            '
-        >
+        <div className='min-h-screen bg-slate-950 text-white flex flex-col items-center px-6 border border-indigo-400'>
             {interviewLoading ? (
                 <div className="min-h-screen w-full flex flex-col items-center justify-center">
                     <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-500 mb-4" />
-                    <p className='text-slate-300 text-sm'>
-                        Preparing your interview environment...
-                    </p>
+                    <p className='text-slate-300 text-sm'>Loading interview...</p>
                 </div>
             ) : !currentInterview ? (
                 <div className="min-h-screen w-full flex flex-col items-center justify-center">
                     <AlertTriangle className="h-12 w-12 text-amber-500 mb-4" />
-                    <p className='text-slate-300 text-lg mb-4'>
-                        Interview data not found
-                    </p>
-                    <Button 
-                        onClick={() => navigate('/dashboard')}
-                        className="bg-indigo-600 hover:bg-indigo-700"
-                    >
+                    <p className='text-slate-300 text-lg mb-4'>Interview not found</p>
+                    <Button onClick={() => navigate('/dashboard')} className="bg-indigo-600 hover:bg-indigo-700">
                         Back to Dashboard
                     </Button>
                 </div>
             ) : (
                 <div className='w-full max-w-4xl py-12'>
+                    {/* Status Message Banner */}
+                    {statusMessage && (
+                        <div className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${
+                            currentInterview.status === 'questions_generated' ? 'bg-green-900/30 border border-green-700' :
+                            currentInterview.status === 'evaluated' || currentInterview.status === 'completed' ? 'bg-amber-900/30 border border-amber-700' :
+                            'bg-blue-900/30 border border-blue-700'
+                        }`}>
+                            <AlertCircle className="w-5 h-5" />
+                            <span className="text-sm">{statusMessage}</span>
+                        </div>
+                    )}
 
                     {/* Header */}
                     <h1 className="text-2xl md:text-3xl font-semibold mb-6 text-center">Interview Instructions</h1>
@@ -621,6 +650,7 @@ const PreInterviewScreen = ({onStart}) => {
                             <OverviewRow label="Total Questions" value={totalQuestions} />
                             <OverviewRow label="Duration" value={`${duration} minutes`} />
                             <OverviewRow label="Answer Mode" value="Voice + Text" />
+                            <OverviewRow label="Current Status" value={currentInterview.status} />
                         </section>
 
                         {/* Rules */}
@@ -642,35 +672,22 @@ const PreInterviewScreen = ({onStart}) => {
                             <Info className="w-4 h-4  text-amber-400/80" />
                             Answering Questions
                         </p>
-
                         <ul className="space-y-1.5">
                             <li className="flex items-start gap-2">
-                            <BarChart3 className="w-4 h-4 mt-1 text-indigo-400 shrink-0" />
-                            <span>
-                                Each question includes metadata like type, difficulty, estimated time,
-                                and suggested word count.
-                            </span>
+                                <BarChart3 className="w-4 h-4 mt-1 text-indigo-400 shrink-0" />
+                                <span>Each question includes metadata like type, difficulty, estimated time, and suggested word count.</span>
                             </li>
-
                             <li className="flex items-start gap-2">
-                            <Timer className="w-4 h-4 mt-1 text-indigo-400 shrink-0" />
-                            <span>
-                                Use this information to structure your answer effectively.
-                            </span>
+                                <Timer className="w-4 h-4 mt-1 text-indigo-400 shrink-0" />
+                                <span>Use this information to structure your answer effectively.</span>
                             </li>
-
                             <li className="flex items-start gap-2">
-                            <Mic className="w-4 h-4 mt-1 text-indigo-400 shrink-0" />
-                            <span>
-                                Audio attempts are limited per question.
-                            </span>
+                                <Mic className="w-4 h-4 mt-1 text-indigo-400 shrink-0" />
+                                <span>Audio attempts are limited per question.</span>
                             </li>
-
                             <li className="flex items-start gap-2">
-                            <Type className="w-4 h-4 mt-1 text-indigo-400 shrink-0" />
-                            <span>
-                                Typed answers can be edited freely.
-                            </span>
+                                <Type className="w-4 h-4 mt-1 text-indigo-400 shrink-0" />
+                                <span>Typed answers can be edited freely.</span>
                             </li>
                         </ul>
                     </section>
@@ -680,11 +697,13 @@ const PreInterviewScreen = ({onStart}) => {
                     {/* IMP section - controls */}
                     <div className='flex flex-col items-center gap-4'>
                         <Button 
-                            disabled={isStarting || interviewLoading}
+                            disabled={isStarting || interviewLoading || !canStart}
                             onClick={requestPermissions}
-                            className="px-10 py-6 text-base bg-indigo-600 hover:bg-indigo-700"
+                            className="px-10 py-6 text-base bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 disabled:cursor-not-allowed"
                         >
-                            {interviewLoading ? "Loading..." : "Start Interview"}
+                            {interviewLoading ? "Loading..." : 
+                             !canStart ? "Cannot Start" : 
+                             isStarting ? "Starting..." : "Start Interview"}
                         </Button>
 
                         {showFullscreenBtn && (
@@ -703,12 +722,7 @@ const PreInterviewScreen = ({onStart}) => {
                                     <h3 className='text-xl font-bold mb-4'>Exit Interview Setup?</h3>
                                     <p className='mb-6'>Your progress will be lost.</p>
                                     <div className='flex gap-4'>
-                                        <Button 
-                                            onClick={() => navigate('/dashboard')}
-                                            variant="destructive"
-                                        >
-                                            Exit
-                                        </Button>
+                                        <Button onClick={() => navigate('/dashboard')} variant="destructive">Exit</Button>
                                         <Button onClick={() => setShowExitConfirm(false)}>Continue Setup</Button>
                                     </div>
                                 </div>
@@ -728,7 +742,6 @@ const PreInterviewScreen = ({onStart}) => {
 }
 
 /* helpers */
-
 const OverviewRow = ({ label, value }) => (
   <div className="flex justify-between gap-4 border-b border-slate-800 pb-1">
     <span className="text-slate-400 text-sm">{label}</span>
@@ -736,9 +749,7 @@ const OverviewRow = ({ label, value }) => (
   </div>
 );
 
-const Divider = () => (
-  <div className="my-4 h-px bg-slate-800" />
-);
+const Divider = () => <div className="my-4 h-px bg-slate-800" />;
 
 const Rule = ({ icon: Icon, text }) => (
   <div className="flex gap-3">
@@ -746,6 +757,5 @@ const Rule = ({ icon: Icon, text }) => (
     <p>{text}</p>
   </div>
 );
-
 
 export default PreInterviewScreen;

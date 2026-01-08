@@ -127,53 +127,77 @@ const generateQuestionsH = async (req, res) => {
 
         console.log("Inside generateQuestions API...");
 
-        const interview = await InterviewSession.findById(req.params.interviewId);
+        // First check if interview exists and user owns it
+        const interviewCheck = await InterviewSession.findById(req.params.interviewId);
         
-        if (!interview) {
+        if (!interviewCheck) {
             return res.status(404).json({ message: 'Interview not found' });
         }
 
         // Check if user owns this interview
-        if (interview.user.toString() !== req.user.id) {
+        if (interviewCheck.user.toString() !== req.user.id) {
             return res.status(403).json({ message: 'Unauthorized' });
         }
 
-        // ab actually interviewQuestions generate karte hai 
-        if (interview.questions.length === 0) {
-            const generatedQuestions = await generateAIQuestions({
-                title: interview.title,
-                jobDescription: interview.jobDescription,
-                duration: interview.duration,
-                type: interview.type,
-                experience: interview.experience,
-                interviewContext: interview.interviewContext,
-                targetCompanies: interview.targetCompanies
+        // agar questions already exist karte hai, to return them
+        if (interviewCheck.questions.length > 0) {
+            return res.status(200).send({
+                message: "Questions already generated!",
+                questions: interviewCheck.questions
             });
-
-            // now map each question to our schema
-            interview.questions = generatedQuestions.map(q => ({
-                questionObj: {
-                    qtxt: q.qtxt,
-                    qd: q.qd,
-                    et: q.et,
-                    wc: q.wc,
-                    qtyp: q.qtyp
-                },
-                answerText: null,
-                audioUrl: null,
-                score: null,
-                feedbackObj: {}
-            }));
         }
 
-        console.log("AI Generated Questions: ", interview.questions.questionObj);
+        // ab questions generate karo 
+        const generatedQuestions = await generateAIQuestions({
+            title: interview.title,
+            jobDescription: interview.jobDescription,
+            duration: interview.duration,
+            type: interview.type,
+            experience: interview.experience,
+            interviewContext: interview.interviewContext,
+            targetCompanies: interview.targetCompanies
+        });
+
+        // now map each question to our schema
+        interview.questions = generatedQuestions.map(q => ({
+            questionObj: {
+                qtxt: q.qtxt,
+                qd: q.qd,
+                et: q.et,
+                wc: q.wc,
+                qtyp: q.qtyp
+            },
+            answerText: null,
+            audioUrl: null,
+            transcript: null,
+            score: null,
+            feedbackObj: {}
+        }));
+
         
-        // save the interview questions
-        await interview.save();
+        // ab race condition ko prevent karne ke liye atomic update karna padega 
+        const updatedInterview = await InterviewSession.findByIdAndUpdate(
+            req.params.interviewId,
+            {
+                $set: {
+                    questions: questionsArray,
+                    status: 'questions_generated'
+                }
+            },
+            {
+                new: true,
+                runValidators: true
+            }
+        );
+
+        // console.log("AI Generated Questions: ", interview.questions.questionObj);
+        
+        // // save the interview questions
+        // await interview.save();
 
         res.status(200).send({ 
             message: "Interview Questions generated successfully!",
-            questions: interview.questions
+            questions: updatedInterview.questions
         })
 
     } catch (error) {
@@ -212,7 +236,15 @@ const beginInterview = async (req, res) => {
         await interview.save();
 
         // last me Frontend ko success response bhi bhej denge
-        res.send({ message: 'Interview Started!', interview });
+        res.send({ 
+            message: 'Interview Started!', 
+            interview : {
+                id: interview._id,
+                status: interview.status,
+                currentQuestionIndex: interview.currentQuestionIndex,
+                totalQuestions: interview.questions.length
+            } 
+        });
 
     } catch (error) {
         res.status(500).send({ message: 'Server Error', error: error.message });
@@ -284,8 +316,28 @@ const submitAnswer = async (req, res) => {
             user: userId
         });
 
+        if (!interview) {
+            return res.status(404).send({ message: "Interview not found!" });
+        }
+
+        // Check if interview is ongoing
+        if (interview.status !== 'ongoing') {
+            return res.status(400).send({ 
+                message: "Interview is not active!" 
+            });
+        }
+
         // 2 - Add answerText and audioBlob in interviewObject 
         const index = interview.currentQuestionIndex;
+
+        // Validate index 
+        if (index >= interview.questions.length) {
+            return res.status(400).send({
+                message: "All questions already answered!"
+            });
+        }
+
+
         interview.questions[index].answerText = answerText;
         interview.questions[index].audioUrl = audioUrl;   // later ye kaam baaki hai 
 
@@ -296,6 +348,7 @@ const submitAnswer = async (req, res) => {
         if (interview.currentQuestionIndex >= interview.questions.length) {
             console.log("Marking interview as completed!");
             interview.status = 'completed';
+            interview.completedAt = new Date();
             // Evaluation and calculation work
         }
 
@@ -305,7 +358,9 @@ const submitAnswer = async (req, res) => {
         // 6 - Send response to frontend
         res.send({
             message: 'Answer submitted!',
-            nextQuestionIndex: interview.currentQuestionIndex
+            nextQuestionIndex: interview.currentQuestionIndex,
+            status: interview.status,
+            isCompleted: interview.status === 'completed'
         });
 
     } catch (error) {
@@ -326,21 +381,29 @@ const evaluateInterview = async (req, res) => {
             return res.status(403).json({ error: 'Unauthorized' });
         }
 
-        // Check if this interview is already evaluated
-        if (interview.feedbackGeneratedAt) {
-            interview.status = 'evaluated';
-            await interview.save();
+        
+
+        // Check 1 - if interview is completed 
+        if (interview.status !== 'completed') {
             return res.status(400).json({ 
-                success: true,
-                message: 'Feedback already generated',
-                feedback: interview.overallFeedback
+                success: false,
+                error: 'Interview must be completed first. Current status: ' + interview.status 
             });
         }
 
-        // Check if interview is completed 
-        // if (interview.status !== 'completed') {
-        //     return res.status(400).json({ error: 'Interview must be completed first' });
-        // }
+        // SECOND CHECK: If already evaluated, just return feedback
+        if (interview.feedbackGeneratedAt) {
+            return res.status(200).json({ 
+                success: true,
+                message: 'Feedback already generated',
+                feedbackObj: {  // <-- Match frontend expectation
+                    overall: interview.overallFeedback,
+                    questions: interview.questions.map(q => ({
+                        feedbackObj: q.feedbackObj
+                    }))
+                }
+            });
+        }
 
         // ab questionWise feedback generate karte hai, 
         console.log('Generating question wise feedback...');
