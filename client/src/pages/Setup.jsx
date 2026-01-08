@@ -16,7 +16,7 @@ import { validateSetup } from '@/utils/dataValidation';
 // lucide react 
 import { AlertCircle } from 'lucide-react';
 
-
+import { clearCurrentInterview } from '@/store/interviewSlice';
 
 const Setup = () => {
 
@@ -99,19 +99,29 @@ const Setup = () => {
 
         // Direct dataToSend bheja (nested nhi)
         const res = await dispatch(createInterview(dataToSend));
-        console.log('Dispatch Result: ', res);
+            console.log('Dispatch Result: ', res);
 
-        if (createInterview.fulfilled.match(res)) {
-            const interviewId = res.payload.interview?.id;
-            console.log('Interview created, ID:', interviewId);
+            if (createInterview.fulfilled.match(res)) {
+            const interviewId = res.payload.interview?.id || res.payload.interview?._id;
+            console.log('✅ Interview created, ID:', interviewId);
 
             if (interviewId) {
-                navigate(`/interview-room/${interviewId}`);
+                // ✅ IMPORTANT: Clear any old interview data before navigating
+                // ये assume कर रहा हूँ कि clearCurrentInterview action तुम्हारे slice में है
+                dispatch(clearCurrentInterview());
+                
+                // ✅ Small delay for state to clear
+                setTimeout(() => {
+                    navigate(`/interview-room/${interviewId}`);
+                }, 100);
             } else {
-                console.error('Interview ID missing:', res.payload);
+                console.error('❌ Interview ID missing:', res.payload);
                 navigate('/dashboard');
             }
-        } 
+        } else {
+            console.error('❌ Interview creation failed:', res.error);
+            alert('Failed to create interview. Please try again.');
+        }
     }
 
     

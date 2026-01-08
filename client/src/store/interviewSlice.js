@@ -275,7 +275,13 @@ const interviewSlice = createSlice({
                 state.mediaStream.getTracks().forEach(track => track.stop());
             }
             state.mediaStream = null;
-        }
+        },
+
+        clearCurrentInterview: (state) => {
+            state.currentInterview = null;
+            // Optional: Clear other states too
+            state.mediaStream = null;
+        },
 
     },
     extraReducers: (builder) => {
@@ -430,5 +436,5 @@ const interviewSlice = createSlice({
     }
 });
 
-export const { setMediaStream, clearMediaStream, endInterview } = interviewSlice.actions;
+export const { setMediaStream, clearMediaStream, endInterview, clearCurrentInterview } = interviewSlice.actions;
 export default interviewSlice.reducer;

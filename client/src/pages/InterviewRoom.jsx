@@ -3,7 +3,7 @@ import React, {useState, useEffect, useRef} from 'react';
 import PreInterviewScreen from '@/components/PreInterviewScreen'
 import ActualInterviewScreen from '@/components/ActualInterviewScreen';
 
-import { setMediaStream, clearMediaStream, fetchInterviewById, generateQuestionsT } from '@/store/interviewSlice';
+import { setMediaStream, clearMediaStream, fetchInterviewById, generateQuestionsT, clearCurrentInterview } from '@/store/interviewSlice';
 
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -14,6 +14,8 @@ const InterviewRoom = () => {
     const { interviewId } = useParams();
     console.log('Interview ID: ', interviewId);
     
+    const prevInterviewIdRef = useRef(null);
+
     // fetch currentInterview from redux state 
     const { mediaStream, currentInterview, interviewLoading } = useSelector(state => state.interview);
 
@@ -24,31 +26,48 @@ const InterviewRoom = () => {
         return saved === 'true' ? 'interview' : 'pre';
     });
 
-    // ye tab hee run hoga jb stage 'interview' hai and 'stream null hai'
+    useEffect(() => {
+        console.log("🔄 InterviewRoom: Checking interview ID change");
+        
+        if (interviewId && interviewId !== prevInterviewIdRef.current) {
+            console.log("🆕 New interview ID detected:", interviewId);
+            console.log("Previous ID was:", prevInterviewIdRef.current);
+            
+            // Clear old interview data
+            dispatch(clearCurrentInterview());
+            
+            // Update ref
+            prevInterviewIdRef.current = interviewId;
+            
+            // Set stage to 'pre' for new interview
+            setStage('pre');
+            localStorage.setItem('interview_active', 'false');
+            
+            // Fetch new interview data
+            dispatch(fetchInterviewById(interviewId));
+        }
+    }, [interviewId, dispatch]);
+
+    // ✅ ye tab hee run hoga jb stage 'interview' hai and 'stream null hai'
     useEffect(() => {
         if (stage === 'interview' && !mediaStream) {
-            // agar sessionStorage me mic_permission ko granted kiya hai to hum firse ActualInterview page pr stream le sakte hai
             if (sessionStorage.getItem('mic_permission') === 'granted') {
-                // firse nayi stream lo 
-                navigator.mediaDevices.getUserMedia({ audio: true })    // ye ek promise hota hai and wo hame niche consume karna padega 
-                    .then(newStream => dispatch(setMediaStream(newStream)));
-                    
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(newStream => {
+                        dispatch(setMediaStream(newStream));
+                        console.log("🎤 New stream obtained after refresh");
+                    })
+                    .catch(error => {
+                        console.error("Failed to get stream:", error);
+                        setStage('pre');
+                    });
             } else {    
-                // sessionStorage me mic_permission ko 'granted' nhi kiya tb 
                 setStage('pre');
             }
         } 
-    }, [mediaStream, stage]);
+    }, [mediaStream, stage, dispatch]);
 
     
-    // logging fetched data 
-    useEffect(() => {
-        if (currentInterview) {
-            console.log('Current Interview Loaded: ', currentInterview._id);
-            console.log("Questions Count: ", currentInterview.questions?.length || 0);
-        }
-    }, [currentInterview]); // will log only when interview actually changes
-
     // Store interview data in redux by calling the thunk
     useEffect(() => {
         if (interviewId && !interviewLoading && !currentInterview) {     // only fetch if not already loaded
@@ -62,17 +81,38 @@ const InterviewRoom = () => {
     useEffect(() => {
         // ONLY generate if interview exists AND has no questions
         if (currentInterview?.questions?.length === 0){
-                dispatch(generateQuestionsT(interviewId));
+            console.log("Generating questions for interview: ", interviewId);
+            dispatch(generateQuestionsT(interviewId));
         }
-    }, [currentInterview, interviewId]);
+    }, [currentInterview, interviewId, dispatch]);
 
+    // ✅ Check if interview is already evaluated
     useEffect(() => {
-        if (currentInterview?.questions) {
-            console.log("Interview Questions: ", currentInterview?.questions?.map(q => q.questionObj));
+        if (currentInterview?.status === 'evaluated' && stage !== 'interview') {
+            console.log("✅ Interview already evaluated, redirecting...");
+            alert("This interview is already completed!");
+            // Redirect to feedback page
+            window.location.href = `/feedback/${interviewId}`;
         }
-    }, [currentInterview?.questions]);
+    }, [currentInterview, interviewId, stage]);
 
-    
+    // ✅ Modified onStart handler
+    const handleInterviewStart = (audioStream) => {
+        console.log("🚀 Starting interview with ID:", interviewId);
+        
+        // Clear any old timer data
+        localStorage.removeItem('time_left');
+        
+        // Set stream and stage
+        dispatch(setMediaStream(audioStream));
+        
+        // Small delay to ensure state updates
+        setTimeout(() => {
+            localStorage.setItem('interview_active', 'true');
+            setStage('interview');
+            console.log("🎬 Interview stage set to 'interview'");
+        }, 100);
+    };
 
 
     console.log('Interview ID from params:', interviewId);
@@ -82,20 +122,22 @@ const InterviewRoom = () => {
     console.log(localStorage.getItem('token'))
 
     
-
+    // ✅ Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                console.log("🎤 Stream cleaned up on unmount");
+            }
+        };
+    }, [mediaStream]);
 
     return (
         <div className='full-screen'>
 
             {stage === 'pre' && 
                 <PreInterviewScreen 
-                    onStart={(audioStream) => {
-                        // rendering ke beech me state updates allowed nhi hote usko rokne ke liye below code ko next rendering cycle me schedule karte hai 
-                        setTimeout(() => {
-                            dispatch(setMediaStream(audioStream));
-                            setStage('interview');
-                        }, 0);
-                    }} 
+                    onStart={handleInterviewStart} 
                     isLoading={!currentInterview}
                 />
             }
@@ -112,6 +154,14 @@ const InterviewRoom = () => {
 
 export default InterviewRoom;
 
+
+// (audioStream) => {
+//     // rendering ke beech me state updates allowed nhi hote usko rokne ke liye below code ko next rendering cycle me schedule karte hai 
+//     setTimeout(() => {
+//         dispatch(setMediaStream(audioStream));
+//         setStage('interview');
+//     }, 0);
+// }
 
 
 
