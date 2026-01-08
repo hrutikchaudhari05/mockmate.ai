@@ -6,6 +6,14 @@ const openai = require('../services/openaiService')
 const generateAIQuestions = async (currentInterview) => {
     console.log('🤖 Generating AI questions...');
 
+    // ADD THIS DEBUG LOG
+    console.log("Current interview data received:", {
+        title: currentInterview.title,
+        duration: currentInterview.duration,
+        hasContext: !!currentInterview.interviewContext,
+        hasJD: !!currentInterview.jobDescription
+    });
+
     const safeContext = currentInterview.interviewContext?.trim() || `Focus on core skills mentioned in the Job Description. Avoid unrelated technologies or fields.`
 
     const duration = currentInterview.duration;    

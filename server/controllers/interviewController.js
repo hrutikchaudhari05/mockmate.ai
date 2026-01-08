@@ -122,32 +122,135 @@ const getInterviewById = async (req, res) => {
 };
 
 // Generate AI Questions
+// const generateQuestionsH = async (req, res) => {
+//     try {
+
+//         console.log("Inside generateQuestions API...");
+
+//         // First check if interview exists and user owns it
+//         const interviewCheck = await InterviewSession.findById(req.params.interviewId);
+        
+//         if (!interviewCheck) {
+//             return res.status(404).json({ message: 'Interview not found' });
+//         }
+
+//         // Check if user owns this interview
+//         if (interviewCheck.user.toString() !== req.user.id) {
+//             return res.status(403).json({ message: 'Unauthorized' });
+//         }
+
+//         // agar questions already exist karte hai, to return them
+//         if (interviewCheck.questions.length > 0) {
+//             return res.status(200).send({
+//                 message: "Questions already generated!",
+//                 questions: interviewCheck.questions
+//             });
+//         }
+
+//         // ab questions generate karo 
+//         const generatedQuestions = await generateAIQuestions({
+//             title: interviewCheck.title,
+//             jobDescription: interviewCheck.jobDescription,
+//             duration: interviewCheck.duration,
+//             type: interviewCheck.type,
+//             experience: interviewCheck.experience,
+//             interviewContext: interviewCheck.interviewContext,
+//             targetCompanies: interviewCheck.targetCompanies
+//         });
+
+//         // now map each question to our schema
+//         interviewCheck.questions = generatedQuestions.map(q => ({
+//             questionObj: {
+//                 qtxt: q.qtxt,
+//                 qd: q.qd,
+//                 et: q.et,
+//                 wc: q.wc,
+//                 qtyp: q.qtyp
+//             },
+//             answerText: null,
+//             audioUrl: null,
+//             transcript: null,
+//             score: null,
+//             feedbackObj: {}
+//         }));
+
+        
+//         // ab race condition ko prevent karne ke liye atomic update karna padega 
+//         const updatedInterview = await InterviewSession.findByIdAndUpdate(
+//             req.params.interviewId,
+//             {
+//                 $set: {
+//                     questions: questionsArray,
+//                     status: 'questions_generated'
+//                 }
+//             },
+//             {
+//                 new: true,
+//                 runValidators: true
+//             }
+//         );
+
+//         // console.log("AI Generated Questions: ", interview.questions.questionObj);
+        
+//         // // save the interview questions
+//         // await interview.save();
+
+//         res.status(200).send({ 
+//             message: "Interview Questions generated successfully!",
+//             questions: updatedInterview.questions
+//         })
+
+//     } catch (error) {
+//         console.log("Error Occurred: ", error.message);
+//         res.status(500).send({ message: "Server Error!", error: error.message});
+//     }
+// }
+
 const generateQuestionsH = async (req, res) => {
     try {
+        console.log("=== START generateQuestionsH ===");
+        console.log("Interview ID:", req.params.interviewId);
+        console.log("User ID:", req.user.id);
 
-        console.log("Inside generateQuestions API...");
-
-        // First check if interview exists and user owns it
-        const interviewCheck = await InterviewSession.findById(req.params.interviewId);
+        // 1. Find interview
+        const interview = await InterviewSession.findById(req.params.interviewId);
         
-        if (!interviewCheck) {
-            return res.status(404).json({ message: 'Interview not found' });
-        }
-
-        // Check if user owns this interview
-        if (interviewCheck.user.toString() !== req.user.id) {
-            return res.status(403).json({ message: 'Unauthorized' });
-        }
-
-        // agar questions already exist karte hai, to return them
-        if (interviewCheck.questions.length > 0) {
-            return res.status(200).send({
-                message: "Questions already generated!",
-                questions: interviewCheck.questions
+        if (!interview) {
+            console.log("❌ Interview not found");
+            return res.status(404).json({ 
+                success: false,
+                message: 'Interview not found' 
             });
         }
 
-        // ab questions generate karo 
+        console.log("✅ Interview found:", interview.title);
+
+        // 2. Check authorization
+        if (interview.user.toString() !== req.user.id) {
+            console.log("❌ Unauthorized access");
+            return res.status(403).json({ 
+                success: false,
+                message: 'Unauthorized' 
+            });
+        }
+
+        console.log("✅ User authorized");
+
+        // 3. Check if questions already exist
+        if (interview.questions && interview.questions.length > 0) {
+            console.log("✅ Questions already exist:", interview.questions.length);
+            return res.status(200).send({
+                success: true,
+                message: "Questions already generated!",
+                questions: interview.questions,
+                status: interview.status
+            });
+        }
+
+        console.log("📝 No existing questions, generating new ones...");
+
+        // 4. Generate AI questions - FIXED: Pass as object, not individual parameters
+        console.log("🤖 Calling generateAIQuestions...");
         const generatedQuestions = await generateAIQuestions({
             title: interview.title,
             jobDescription: interview.jobDescription,
@@ -158,14 +261,16 @@ const generateQuestionsH = async (req, res) => {
             targetCompanies: interview.targetCompanies
         });
 
-        // now map each question to our schema
-        interview.questions = generatedQuestions.map(q => ({
+        console.log("✅ Generated", generatedQuestions.length, "questions");
+
+        // 5. Create questions array - CORRECT VARIABLE NAME
+        const questionsArray = generatedQuestions.map(q => ({
             questionObj: {
-                qtxt: q.qtxt,
-                qd: q.qd,
-                et: q.et,
-                wc: q.wc,
-                qtyp: q.qtyp
+                qtxt: q.qtxt || "Question text",
+                qd: q.qd || "medium",
+                et: q.et || 120,
+                wc: q.wc || 150,
+                qtyp: q.qtyp || "behavioral"
             },
             answerText: null,
             audioUrl: null,
@@ -174,13 +279,15 @@ const generateQuestionsH = async (req, res) => {
             feedbackObj: {}
         }));
 
-        
-        // ab race condition ko prevent karne ke liye atomic update karna padega 
+        console.log("📊 Created questions array with", questionsArray.length, "items");
+
+        // 6. Atomic update - USING CORRECT VARIABLE
+        console.log("💾 Saving to database...");
         const updatedInterview = await InterviewSession.findByIdAndUpdate(
             req.params.interviewId,
             {
                 $set: {
-                    questions: questionsArray,
+                    questions: questionsArray,  // ← NOW THIS IS CORRECT!
                     status: 'questions_generated'
                 }
             },
@@ -190,19 +297,47 @@ const generateQuestionsH = async (req, res) => {
             }
         );
 
-        // console.log("AI Generated Questions: ", interview.questions.questionObj);
-        
-        // // save the interview questions
-        // await interview.save();
+        console.log("✅ Database save successful");
+        console.log("=== END generateQuestionsH ===");
 
+        // 7. Return response
         res.status(200).send({ 
+            success: true,
             message: "Interview Questions generated successfully!",
-            questions: updatedInterview.questions
-        })
+            questions: updatedInterview.questions,
+            status: updatedInterview.status,
+            count: updatedInterview.questions.length
+        });
 
     } catch (error) {
-        console.log("Error Occurred: ", error.message);
-        res.status(500).send({ message: "Server Error!", error: error.message});
+        console.error("❌ ERROR in generateQuestionsH:");
+        console.error("Error name:", error.name);
+        console.error("Error message:", error.message);
+        console.error("Full error:", error);
+        
+        // Check if it's an OpenAI error
+        if (error.message.includes('OpenAI') || error.message.includes('API key')) {
+            return res.status(500).send({ 
+                success: false,
+                message: "AI Service Error. Please check OpenAI API configuration.",
+                error: error.message
+            });
+        }
+        
+        // Check if it's a JSON parsing error
+        if (error.name === 'SyntaxError' && error.message.includes('JSON')) {
+            return res.status(500).send({ 
+                success: false,
+                message: "Failed to parse AI response. Please try again.",
+                error: "Invalid JSON from AI service"
+            });
+        }
+        
+        res.status(500).send({ 
+            success: false,
+            message: "Server Error!", 
+            error: error.message
+        });
     }
 }
 
