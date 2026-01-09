@@ -1074,4 +1074,4 @@ const evaluateInterview = async (req, res) => {
 //     }
 // };
 
-module.exports = { fixInterviewStatus, checkStatus, createInterview, getUserInterviews, getInterviewById, generateQuestionsH, beginInterview, getTranscript, submitAnswer, evaluateInterview};
+module.exports = { createInterview, getUserInterviews, getInterviewById, generateQuestionsH, beginInterview, getTranscript, submitAnswer, evaluateInterview};
