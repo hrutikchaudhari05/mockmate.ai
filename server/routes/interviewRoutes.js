@@ -20,8 +20,8 @@ router.post('/:interviewId/begin', beginInterview);
 router.post('/:interviewId/audio', getTranscript);
 router.post('/:interviewId/submit', submitAnswer);
 router.post('/:interviewId/evaluate', evaluateInterview);
-router.post('/debug-status/:id', checkStatus);
-router.post('/:interviewId/fix-status', fixInterviewStatus);
+// router.post('/debug-status/:id', checkStatus);
+// router.post('/:interviewId/fix-status', fixInterviewStatus);
 // router.get('/:interviewId/feedback', getFeedback);
 
 router.post('/test-upload', (req, res) => {
