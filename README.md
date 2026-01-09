@@ -5,7 +5,7 @@
 
 **MockMate** is a realistic AI-powered mock interview platform that simulates real interview pressure, evaluates your answers deeply, and tells you exactly where you stand.  
 
-**🌐 Try the platform live:** [Demo Link](#)  
+**🌐 Try the platform live:** [Demo Link](https://mockmate-ai-nine.vercel.app/)  
 
 ---
 
