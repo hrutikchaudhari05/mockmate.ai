@@ -429,20 +429,20 @@ const PreInterviewScreen = ({onStart}) => {
         
         // Handle status
         switch (currentInterview.status) {
-            case 'setup':
-                // Interview created but questions not generated
-                if (currentInterview.questions?.length === 0) {
-                    setStatusMessage('Questions not generated yet. Please wait...');
-                    setCanStart(false);
-                    
-                    // Auto-generate questions if not present
-                    setTimeout(() => {
-                        console.log("Auto-generating questions...");
-                        // You might want to trigger question generation here
-                    }, 1000);
-                }
-                break;
+
+            // // Interview created but questions not generated
+            // if (currentInterview.questions?.length === 0) {
+            //     setStatusMessage('Questions not generated yet. Please wait...');
+            //     setCanStart(false);
                 
+            //     // Auto-generate questions if not present
+            //     setTimeout(() => {
+            //         console.log("Auto-generating questions...");
+            //         // You might want to trigger question generation here
+            //     }, 1000);
+            // }
+            // break;
+            case 'setup' : 
             case 'questions_generated':
                 // Ready to start!
                 if (currentInterview.questions?.length > 0) {
@@ -464,12 +464,16 @@ const PreInterviewScreen = ({onStart}) => {
                 break;
                 
             case 'completed':
-                // Completed but not evaluated
-                setStatusMessage('Interview completed. Redirecting to evaluation...');
+                // Auto-evaluate then go to feedback
+                setStatusMessage('Generating feedback...');
                 setCanStart(false);
-                setTimeout(() => {
-                    navigate(`/evaluate/${interviewId}`); // Or auto-evaluate
-                }, 2000);
+                
+                try {
+                    await dispatch(evaluateInterview(interviewId)).unwrap();
+                    navigate(`/feedback/${interviewId}`);
+                } catch (error) {
+                    setStatusMessage('Failed to generate feedback. Please try again.');
+                }
                 break;
                 
             case 'evaluated':
@@ -498,7 +502,7 @@ const PreInterviewScreen = ({onStart}) => {
                 return;
             }
             
-            if (currentInterview?.status === 'ongoing') {
+            if (currentInterview?.status === 'ongoing' && currentInterview?.feedbackGeneratedAt) {
                 alert("Interview already in progress!");
                 navigate(`/interview-room/${interviewId}`);
                 return;

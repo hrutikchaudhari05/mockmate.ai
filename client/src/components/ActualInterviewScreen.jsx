@@ -434,14 +434,19 @@ const ActualInterviewScreen = () => {
         }
     }, [latestBlobRef.current, isRecording]);
 
-    // Imp Metadata 
-    const questions = currentInterview?.questions;
-    const questionText = questions[currQueIndex].questionObj?.qtxt;
-    const difficulty = questions[currQueIndex].questionObj?.qd;
-    const questionType = questions[currQueIndex].questionObj?.qtyp;
-    const estimatedTime = questions[currQueIndex].questionObj?.et;
-    const expectedWordCount = questions[currQueIndex].questionObj?.wc;
-    
+
+    // Imp Metadata - SAFE ACCESS WITH DEFAULTS
+    const questions = currentInterview?.questions || [];
+    const currentQuestion = questions[currQueIndex] || {};
+    const questionObj = currentQuestion.questionObj || {};
+
+    const questionText = questionObj.qtxt || "Question not available";
+    const difficulty = questionObj.qd || "medium";
+    const questionType = questionObj.qtyp || "conceptual";
+    const estimatedTime = questionObj.et || 120;
+    const expectedWordCount = questionObj.wc || 150;
+
+
     return (
 
         // ye main div hai full screen mode waala
@@ -454,7 +459,7 @@ const ActualInterviewScreen = () => {
                 <div>
                     <h1 className='text-lg font-semibold'>{currentInterview?.title || 'Loading...'}</h1>
                     <div className='text-slate-500 mt-1 text-sm'>
-                        Question {currQueIndex + 1} of {currentInterview?.questions?.length}
+                        Question {(currQueIndex || 0) + 1} of {questions?.length || 0}
                     </div>
                 </div>
 
@@ -606,7 +611,7 @@ const ActualInterviewScreen = () => {
                                 className="border-slate-700 border text-slate-400 bg-slate-950/80 font-bold hover:bg-slate-950 hover:border hover:border-indigo-500/80 hover:text-indigo-400"
                                 
                             >
-                                {currQueIndex >= currentInterview?.questions.length - 1 
+                                {currQueIndex >= questions.length - 1 
                                     ? (isLoading ? 'Saving...' : "End Interview") 
                                     : (isLoading ? 'Submitting...' : "Submit & Next")}
                                 
