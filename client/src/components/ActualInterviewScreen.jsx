@@ -10,7 +10,7 @@ import { fetchInterviewById, submitAnswer, getTranscriptT, evaluateInverview, cl
 
 import { getDynamicNote } from '@/utils/getDynamicNote';
 
-const ActualInterviewScreen = () => {
+const ActualInterviewScreen = ({ mediaStream }) => {
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -18,7 +18,7 @@ const ActualInterviewScreen = () => {
     const {interviewId} = useParams();
 
     // ALL Redux data needed
-    const { currentInterview, mediaStream } = useSelector((state) => state.interview);
+    const { currentInterview } = useSelector((state) => state.interview);
     const { user } = useSelector(state => state.auth);
     const userId = user?._id;
     const interviewDuration = currentInterview?.duration;

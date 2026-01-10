@@ -8,7 +8,7 @@
 
 // // Add these imports
 // import { useDispatch } from 'react-redux';
-// import { beginInterview } from '@/store/interviewSlice';
+// import { beginInterview, clearCurrentInterview, fetchInterviewById } from '@/store/interviewSlice';
 
 
 // const PreInterviewScreen = ({onStart}) => {
@@ -78,36 +78,87 @@
 //     // actually mediaStream ek object store karta hai named stream ( jisme user ke media permissions stored hote hai )
 
 //     // mic allow permission popup by browser 
+//     // const requestPermissions = async () => {
+//     //     try {
+
+//     //         if (interviewId && currentInterview.status === 'evaluated') {
+//     //             alert("This interview is already evaluated!");
+//     //             navigate(`/feedback/${interviewId}`);
+//     //             return;
+//     //         }
+            
+//     //         // audio permission req,
+//     //         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+//     //         console.log("Stream: ", stream)
+//     //         // ab stream ko iss component ke local state me save karna padega 
+//     //         setLocalStream(stream);
+            
+//     //         // ab permission status ko sessionStorage me save karenge 
+//     //         sessionStorage.setItem('mic_permission', 'granted');  
+//     //         // is info kaa use iska parent (interivewRoom) karega, if in case stream nhi mili ActualInterview page pr to...
+
+//     //         // dispatch the beginInterview thunk
+//     //         dispatch(beginInterview(interviewId));
+
+//     //         // ab full-screeh button show karna padega, 
+//     //         setShowFullscreenBtn(true);
+
+//     //         setIsStarting(true);
+
+//     //     } catch (error) {
+//     //         console.error('Mic access denied: ', error, error.name, error.message);
+//     //         // alert('Microphone access required for interview');
+//     //     }
+//     // }
+
 //     const requestPermissions = async () => {
 //         try {
-
+//             // pehle check karo - kya interview already evaluated hai?
 //             if (interviewId && currentInterview.status === 'evaluated') {
 //                 alert("This interview is already evaluated!");
 //                 navigate(`/feedback/${interviewId}`);
 //                 return;
 //             }
+
+//             // NEW CHECK: Interview start karne ke liye sahi status hona chahiye
+//             if (currentInterview?.status !== 'setup' && currentInterview?.status !== 'questions_generated') {
+//                 alert(`Interview cannot be started now. Current status: ${currentInterview?.status || 'unknown'}`);
+//                 return;
+//             }
+
             
-//             // audio permission req,
+//             // audio permission lo browser se
 //             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-//             console.log("Stream: ", stream)
+//             console.log("Stream obtained: ", stream);
+            
 //             // ab stream ko iss component ke local state me save karna padega 
 //             setLocalStream(stream);
             
-//             // ab permission status ko sessionStorage me save karenge 
+//             // ab permission status ko sessionStorage me save karenge (yeh baad mein kaam aayega)
 //             sessionStorage.setItem('mic_permission', 'granted');  
-//             // is info kaa use iska parent (interivewRoom) karega, if in case stream nhi mili ActualInterview page pr to...
-
-//             // dispatch the beginInterview thunk
-//             dispatch(beginInterview(interviewId));
-
-//             // ab full-screeh button show karna padega, 
+//             // is info kaa use iska parent (interivewRoom) karega, if in case stream nhi mili ActualInterview page pr refresh ke baad...
+            
+//             // ab interview start karne ke liye backend API call karo
+//             // IMPORTANT: wait karo API response ka pahle aage badhne se
+//             const result = await dispatch(beginInterview(interviewId)).unwrap();
+//             console.log("Backend interview start response: ", result);
+            
+//             // ab hee full-screen button show karna chahiye (agar API successfull hui to)
 //             setShowFullscreenBtn(true);
-
 //             setIsStarting(true);
 
 //         } catch (error) {
-//             console.error('Mic access denied: ', error, error.name, error.message);
-//             // alert('Microphone access required for interview');
+//             console.error('Error in requestPermissions: ', error.name, error.message);
+            
+//             // different errors handle karo
+//             if (error.name === 'NotAllowedError') {
+//                 alert('Microphone permission required for interview. Please allow microphone access.');
+//             } else if (error.message.includes('interview')) {
+//                 // Backend error (e.g., no questions, already started, etc.)
+//                 alert('Cannot start interview: ' + error.message);
+//             } else {
+//                 alert('Failed to start interview. Please try again.');
+//             }
 //         }
 //     }
 
@@ -376,7 +427,7 @@ import { Mic, Ban, Headphones, AlertTriangle, Clock, Monitor, Layers, Info, BarC
 import { Button } from '@/components/ui/button';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
-import { beginInterview, fetchInterviewById, clearCurrentInterview } from '@/store/interviewSlice';
+import { beginInterview, fetchInterviewById, clearCurrentInterview, evaluateInverview } from '@/store/interviewSlice';
 
 const PreInterviewScreen = ({onStart}) => {
     const dispatch = useDispatch();
@@ -395,7 +446,7 @@ const PreInterviewScreen = ({onStart}) => {
     const { interviewId } = useParams();
     const { currentInterview, interviewLoading } = useSelector((state) => state.interview);
 
-    // 🔄 Fetch interview data
+    // Fetch interview data
     useEffect(() => {
         if (!interviewId) {
             navigate('/dashboard');
@@ -413,7 +464,7 @@ const PreInterviewScreen = ({onStart}) => {
         }
     }, [interviewId, currentInterview, dispatch, navigate]);
 
-    // ✅ STATUS CHECK - MOST IMPORTANT FIX
+    // STATUS CHECK - MOST IMPORTANT FIX
     useEffect(() => {
         if (interviewLoading || !currentInterview) return;
         
@@ -430,18 +481,6 @@ const PreInterviewScreen = ({onStart}) => {
         // Handle status
         switch (currentInterview.status) {
 
-            // // Interview created but questions not generated
-            // if (currentInterview.questions?.length === 0) {
-            //     setStatusMessage('Questions not generated yet. Please wait...');
-            //     setCanStart(false);
-                
-            //     // Auto-generate questions if not present
-            //     setTimeout(() => {
-            //         console.log("Auto-generating questions...");
-            //         // You might want to trigger question generation here
-            //     }, 1000);
-            // }
-            // break;
             case 'setup' : 
             case 'questions_generated':
                 // Ready to start!
@@ -468,21 +507,27 @@ const PreInterviewScreen = ({onStart}) => {
                 setStatusMessage('Generating feedback...');
                 setCanStart(false);
                 
-                try {
-                    await dispatch(evaluateInterview(interviewId)).unwrap();
-                    navigate(`/feedback/${interviewId}`);
-                } catch (error) {
-                    setStatusMessage('Failed to generate feedback. Please try again.');
-                }
+                // dispatch(evaluateInverview(interviewId))
+                //     .unwrap()
+                //     .then(() => navigate(`/feedback/${interviewId}`))
+                //     .catch(() => {
+                //         setStatusMessage('Failed to generate feedback. Please try again.');
+                //     });
                 break;
                 
             case 'evaluated':
                 // Already evaluated - redirect to feedback
-                setStatusMessage('Interview already evaluated. Redirecting to feedback...');
-                setCanStart(false);
-                setTimeout(() => {
-                    navigate(`/feedback/${interviewId}`);
-                }, 1500);
+                // ONLY if feedback exists, then redirect
+                if (currentInterview.feedbackGeneratedAt) {
+                    setStatusMessage('Interview already evaluated. Redirecting...');
+                    setCanStart(false);
+                    setTimeout(() => {
+                        navigate(`/feedback/${interviewId}`);
+                    }, 1500);
+                } else {
+                    setStatusMessage('Interview completed. Evaluation pending...');
+                    setCanStart(false);
+                }
                 break;
                 
             default:
@@ -528,8 +573,13 @@ const PreInterviewScreen = ({onStart}) => {
             sessionStorage.setItem('mic_permission', 'granted');  
             
             // Dispatch beginInterview
-            dispatch(beginInterview(interviewId));
+            await dispatch(beginInterview(interviewId));
             
+            // ab parent ko stream bhejo
+            console.log("Calling onStart with stream: ", stream);
+            onStart(stream);
+            console.log("onStart called successfully!");
+
             // Show fullscreen button
             setShowFullscreenBtn(true);
             setIsStarting(true);
@@ -763,3 +813,12 @@ const Rule = ({ icon: Icon, text }) => (
 );
 
 export default PreInterviewScreen;
+
+
+
+
+
+
+
+
+
