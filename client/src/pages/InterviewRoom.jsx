@@ -132,14 +132,14 @@ const InterviewRoom = () => {
 
     
     // ✅ Cleanup on unmount
-    useEffect(() => {
-        return () => {
-            if (localStream) {
-                localStream.getTracks().forEach(track => track.stop());
-                console.log("🎤 Stream cleaned up on unmount");
-            }
-        };
-    }, [localStream]);
+    // useEffect(() => {
+    //     return () => {
+    //         if (localStream) {
+    //             localStream.getTracks().forEach(track => track.stop());
+    //             console.log("🎤 Stream cleaned up on unmount");
+    //         }
+    //     };
+    // }, [localStream]);
 
     return (
         <div className='full-screen'>

@@ -23,7 +23,8 @@ const ActualInterviewScreen = ({ mediaStream }) => {
     const userId = user?._id;
     const interviewDuration = currentInterview?.duration;
     const currQueIndex = currentInterview?.currentQuestionIndex;
-    
+    console.log("Interview Duration: ", interviewDuration);
+    console.log("Interview Questions: ", currentInterview?.questions);
 
     // Refs 
     const mediaRecorderRef = useRef(null);  // recorder object re-initialize nhi hona chahiye, aur koi re-renders nhi karna chahiye 
@@ -44,6 +45,9 @@ const ActualInterviewScreen = ({ mediaStream }) => {
     // const [audioBlob, setAudioBlob] = useState(null);   // audio file save karne ke liye
      
 
+
+    // check kr rha hoo stream mili yaa fir nhi, 
+    console.log("Stream received: ", mediaStream);
 
     // time conversion handler 
     const formatTime = (t) => {
@@ -275,7 +279,7 @@ const ActualInterviewScreen = ({ mediaStream }) => {
             navigate(`/feedback/${interviewId}`)
 
         } catch (error) {
-            console.error("Evaluation failed: ", error);
+            console.error("Evaluation failed: ", error, error.message);
             alert('Feedback generation failed. Please try again.');
             setIsLoading(false);
         }
@@ -478,7 +482,7 @@ const ActualInterviewScreen = ({ mediaStream }) => {
                     <Button 
                         variant="destructive"
                         onClick={handleEndInterview}
-                        disabled={isLoading || isConverting}
+                        disabled={isLoading || isConverting || currQueIndex < currentInterview.questions.length - 1}
                         className="bg-red-500/80"
                     >
                         End Interview
