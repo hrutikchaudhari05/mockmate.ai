@@ -980,7 +980,8 @@ const evaluateInterview = async (req, res) => {
             },
             interviewId: updatedInterview._id,
             status: updatedInterview.status,
-            score: overallScore
+            score: overallScore, 
+            interview: updatedInterview
         });
 
     } catch (error) {
