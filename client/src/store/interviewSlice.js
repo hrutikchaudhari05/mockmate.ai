@@ -1,10 +1,9 @@
 import { uploadAudioToCloudinary } from '@/utils/cloudinaryUpload';
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 import { API } from '@/api/api.';
 
 // imports for thunk and api calls
-import { createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 // get all interviews 
@@ -212,10 +211,19 @@ export const evaluateInverview = createAsyncThunk(
                 }
             );
 
+            // Backend 200 return kr sakta hai with alreadyEvaluated flag 
+            if (response.data.alreadyEvaluated) {
+                console.log("Interview already evaluated");
+            }
+
             return response.data;
 
         } catch (error) {
-            rejectWithValue(error.response?.data?.message || "Failed to evalute the interview...!")
+            console.error("Evaluate Error: ", error.response?.data);
+            const errorMessage = error.response?.data?.error || 
+                                error.response?.data?.message || 
+                                "Failed to evaluate interview...";
+            return rejectWithValue(errorMessage);
         }
     }
 );
@@ -424,11 +432,18 @@ const interviewSlice = createSlice({
             .addCase(evaluateInverview.fulfilled, (state, action) => {
                 state.feedbackLoading = false;
                 state.feedbackError = null;
+                // safe access to payload 
+                if (action.payload && action.payload.interview) {
+                    state.currentInterview = action.payload.interview;
+                } else if (action.payload && action.payload.alreadyEvaluated) {
+                    console.log("Interview already evaluated!");
+                }
                 state.currentInterview = action.payload.interview;
             }) 
             .addCase(evaluateInverview.rejected, (state, action) => {
                 state.feedbackLoading = false;
-                state.feedbackError = action.payload;
+                state.feedbackError = action.payload || 'Evaluation failed!';
+                console.error("Evaluation rejected: ", action.payload);
             })
 
             // API 9 - get evaluation result

@@ -7,6 +7,7 @@ const calculateAvgScore = require('../utils/calculateAvgScore');
 const calculateAvgInterviewDuration = require('../utils/calculateAvgInterviewDuration');
 const { getInterviewDates, getUniqueSortedDates } = require('../utils/getInterviewDates');
 const calculateDailyStreak = require('../utils/calculateDailyStreak');
+const getRecommendation = require('../utils/getRecommendation');
 
 
 
@@ -950,7 +951,7 @@ const evaluateInterview = async (req, res) => {
                         summary: overallFeedback.summary || 'Overall performance feedback',
                         strengths: overallFeedback.strengths || [],
                         improvementTips: overallFeedback.improvementTips || [],
-                        recommendation: overallFeedback.recommendation || 'Keep practicing!'
+                        recommendation: getRecommendation(overallScore)
                     },
                     feedbackGeneratedAt: new Date(),
                     status: 'evaluated'

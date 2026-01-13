@@ -6,7 +6,7 @@ import { Textarea } from './ui/textarea';
 // import useSelector for getting data from redux 
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
-import { fetchInterviewById, submitAnswer, getTranscriptT, evaluateInverview, clearMediaStream } from '@/store/interviewSlice';
+import { fetchInterviewById, submitAnswer, getTranscriptT, evaluateInverview } from '@/store/interviewSlice';
 
 import { getDynamicNote } from '@/utils/getDynamicNote';
 
@@ -14,7 +14,6 @@ const ActualInterviewScreen = ({ mediaStream }) => {
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
-
     const {interviewId} = useParams();
 
     // ALL Redux data needed
@@ -23,8 +22,13 @@ const ActualInterviewScreen = ({ mediaStream }) => {
     const userId = user?._id;
     const interviewDuration = currentInterview?.duration;
     const currQueIndex = currentInterview?.currentQuestionIndex;
-    console.log("Interview Duration: ", interviewDuration);
-    console.log("Interview Questions: ", currentInterview?.questions);
+    
+    useEffect(() => {
+        console.log("Interview Duration: ", interviewDuration);
+        console.log("Interview Questions: ", currentInterview?.questions);
+        // check kr rha hoo stream mili yaa fir nhi, 
+        console.log("Stream received: ", mediaStream);
+    }, [mediaStream]);
 
     // Refs 
     const mediaRecorderRef = useRef(null);  // recorder object re-initialize nhi hona chahiye, aur koi re-renders nhi karna chahiye 
@@ -33,21 +37,19 @@ const ActualInterviewScreen = ({ mediaStream }) => {
     const latestBlobRef = useRef(null);
     const globalTimerRef = useRef(null);
     const prevInterviewIdRef = useRef(interviewId);
+    const isEvaluatingRef = useRef(false);
 
-    // all the local states 
+    // all the local states
     const [attempts, setAttempts] = useState(0);
     const [isConverting, setIsConverting] = useState(false);
     const [isRecording, setIsRecording] = useState(false);  // recording started or not
     const [recordSeconds, setRecordSeconds] = useState(0);  // recording ke time count karta hai
     const [isLoading, setIsLoading] = useState(false);  // double clicks prevent karne ke liye
-    const [answer, setAnswer] = useState("");           // textarea me likha hua text 
-    const [timeLeft, setTimeLeft] = useState(interviewDuration);     // global timer 
+    const [answer, setAnswer] = useState("");           // textarea me likha hua text
+    const [timeLeft, setTimeLeft] = useState(interviewDuration);     // global timer
+    const [hasAudioBlob, setHasAudioBlob] = useState(false);  // track if audio blob exists
     // const [audioBlob, setAudioBlob] = useState(null);   // audio file save karne ke liye
-     
-
-
-    // check kr rha hoo stream mili yaa fir nhi, 
-    console.log("Stream received: ", mediaStream);
+    const [isEnding, setIsEnding] = useState(false);    // Prevent UI glitch
 
     // time conversion handler 
     const formatTime = (t) => {
@@ -87,21 +89,21 @@ const ActualInterviewScreen = ({ mediaStream }) => {
             }
         };
 
-        // recording ko rokne kaa logic  
+        // recording ko rokne kaa logic
         mediaRecorderRef.current.onstop = () => {
             console.log('Recording stopped, chunks: ', chunksRef.current.length);
-        
+
             const newBlob = new Blob(chunksRef.current, { type: "audio/webm" });
             latestBlobRef.current = newBlob;
+            setHasAudioBlob(true);  // Set state for rendering
             console.log('Final Blob: ', newBlob.size);
-
             setIsConverting(true);
 
             // ye ek iife hai because .onstop cannot be async
             (async () => {
                 const result = await dispatch(getTranscriptT({
-                    interviewId, 
-                    audioBlob: newBlob, 
+                    interviewId,
+                    audioBlob: newBlob,
                     userId,
                     currQueIndex
                 }));
@@ -164,82 +166,95 @@ const ActualInterviewScreen = ({ mediaStream }) => {
 
     }, [isRecording]);
 
-
-    // testing audio playback 
-    const playAudio = () => {
-        const blob = latestBlobRef.current;
-        if (!blob) return;
-        const audioUrl = URL.createObjectURL(blob);
-        new Audio(audioUrl).play();
-    }
-
-
     // 3 - when user types something 
     const handleAnswerChange = (e) => {
         setAnswer(e.target.value);
     };
 
-    // 4 - submit and next 
+    // 4 - submit and next
     const handleSubmit = async () => {
 
-        setIsConverting(false);
-        setAttempts(0);
-
-        // pehle loading on 
-        setIsLoading(true);
-        // baadme: transcript + audio + questionId backend ko send karna padega 
-
-        // checking is currQueIndex is the last index 
-        const isLastQuestion = currQueIndex >= currentInterview.questions.length - 1;
-
-
-        if (currQueIndex >= currentInterview.questions.length - 1) {
-            console.log("Interview Complete!");
-            // ab auto submit karo feedback page pr 
-            handleEndInterview();
+        if (!answer.trim()) {
+            alert("Please provide an answer before submitting!");
             return;
         }
 
-        // 1. submit answer api call 
-        const result = await dispatch(submitAnswer({
-            interviewId: interviewId,
-            answerText: answer,
-            audioUrl: latestBlobRef.current ? 'temp_url' : ''
-        }))
-        
-        // 2. checking success 
-        if (submitAnswer.fulfilled.match(result)) {
-            // local states ko reset karo - upar waale operations hone ke baad firse local states ko reset karna padega 
+        setIsConverting(false);
+        setAttempts(0);
+        // pehle loading on
+        setIsLoading(true);
+
+        try {
+            // 1. submit answer api call - ALWAYS submit the answer first
+            const submitResult = await dispatch(submitAnswer({
+                interviewId: interviewId,
+                answerText: answer,
+                audioUrl: latestBlobRef.current ? 'temp_url' : ''
+            }))
+
+            // 2. checking success
+            if (!submitAnswer.fulfilled.match(submitResult)) {
+
+                console.error("Submit failed: ", submitResult.error);
+                alert("Failed to submit answer. Please try again.");
+                setIsLoading(false);
+                return;
+            }
+
+            // 3. local states ko reset karo - upar waale operations hone ke baad firse local states ko reset karna padega
             setAnswer('');
             setRecordSeconds(0);
             chunksRef.current = [];
             latestBlobRef.current = null;
+            setHasAudioBlob(false);
 
-            // interviewData ko refresh karo 
-            await dispatch(fetchInterviewById(interviewId));
-
-            // 3. Only after success, check if last question 
-            if (isLastQuestion) {
-                console.log("Last answer submitted, now ending interview...");
-                handleEndInterview();
+            // 4. interviewData ko refresh karo
+            const fetchResult = await dispatch(fetchInterviewById(interviewId));
+            if (!fetchInterviewById.fulfilled.match(fetchResult)) {
+                console.error("Failed to fetch updated interview!");
+                setIsLoading(false);
                 return;
             }
-        } else {
-            // Error handling 
-            console.error("Submit failed: ", result.error);
+
+            // 5. getting fresh data from redux 
+            const updatedInterview = fetchResult.payload;
+            console.log("Updated Interview: ", updatedInterview);
+
+            // 6. check if this was the last question 
+            const isLastQuestion = updatedInterview.currentQuestionIndex >= updatedInterview.questions.length;
+
+            if (isLastQuestion) {
+                console.log("Last question submitted, ending interview...");
+                setIsEnding(true);
+
+                setTimeout(() => {
+                    handleEndInterview();
+                }, 300);
+                return;
+            }
+
+            // 7. for non-last questions, just remove loading
+            setIsLoading(false);
+        } catch (error) {
+            console.error("Submit error: ", error);
+            alert("An error occurred. Please try again.");
+            setIsLoading(false);
         }
 
-        // 4. Loading band karo 
-        if (!isLastQuestion) {
-            setTimeout(() => {
-                setIsLoading(false);
-            }, 500);
-        }
-        
     }
 
     // 5 - End Interview 
     const handleEndInterview = useCallback(async () => {
+
+        // console.log(sessionStorage.getItem('token'));
+
+        // preventing multiple simultaneous evaluations 
+        if (isEvaluatingRef.current) {
+            console.log("Evaluation already in progress, skipping...");
+            return;
+        }
+
+        isEvaluatingRef.current = true;
 
         // pehle recording band karo 
         if (isRecording) {
@@ -253,25 +268,29 @@ const ActualInterviewScreen = ({ mediaStream }) => {
         }
 
         localStorage.removeItem('time_left');
+        localStorage.setItem('interview_active', 'false');
 
         if (currentInterview?.status === 'evaluated') {
             // Already evaluated, just go to feedback
             navigate(`/feedback/${interviewId}`);
+            isEvaluatingRef.current = false;
             return;
         }
-
-        // pehle localStorage me interview_active false karna padega 
-        localStorage.setItem('interview_active', 'false');
-        // final submission send karo, confirmation modal send karo
 
         // showing loading state 
         setIsLoading(true);
 
         try {
-            await dispatch(evaluateInverview(interviewId)).unwrap();
+            console.log("Starting evaluation for interview: ", interviewId);
 
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
+            const result = await dispatch(evaluateInverview(interviewId));
+
+            if (evaluateInverview.rejected.match(result)) {
+                throw new Error(result.payload || "Evaluation failed");
+            }
+
+            if (document.fullscreenElement && document.exitFullscreen) {
+                await document.exitFullscreen();
             }
 
             // aur dusre page pr navigate kr do (feedback page)
@@ -279,15 +298,19 @@ const ActualInterviewScreen = ({ mediaStream }) => {
             navigate(`/feedback/${interviewId}`)
 
         } catch (error) {
-            console.error("Evaluation failed: ", error, error.message);
-            alert('Feedback generation failed. Please try again.');
+            console.error("Evaluation failed: ", error);
+
+            const errorMessage = error.message || "Feedback generation failed";
+
+            alert(`${errorMessage}. Please try again...!`);
             setIsLoading(false);
+            isEvaluatingRef.current = false;
         }
         
         // Back button normal karo
         // window.onpopstate = null;
         
-    }, [currentInterview?.status, interviewId, isRecording, navigate, dispatch]);
+    }, [currentInterview?.status, interviewId, isRecording, navigate, dispatch, handleStopRecording]);
 
     
     // ActualInterviewScreen.jsx me add:
@@ -299,7 +322,7 @@ const ActualInterviewScreen = ({ mediaStream }) => {
         }
     }, [currentInterview, interviewId, dispatch]);
 
-
+    
     useEffect(() => {
         if (currentInterview) {
             console.log("InterviewData: ", currentInterview);
@@ -309,7 +332,6 @@ const ActualInterviewScreen = ({ mediaStream }) => {
         }
     }, [currentInterview])
     
-
     useEffect(() => {
         console.log('Stream Prop: ', mediaStream);
     }, [mediaStream])
@@ -339,7 +361,9 @@ const ActualInterviewScreen = ({ mediaStream }) => {
 
     // sideEffect - timer countdown - auto submit interview when timer ends
     useEffect(() => {
-        if (!interviewDuration || currentInterview?.status === 'evaluated') {
+        if (!interviewDuration) return;
+
+        if (currentInterview?.status === 'evaluated') {
             navigate(`/feedback/${interviewId}`);
             return;
         }; // wait until duration is available
@@ -376,8 +400,9 @@ const ActualInterviewScreen = ({ mediaStream }) => {
         return () => {
             if (globalTimerRef.current) clearInterval(globalTimerRef.current);
         }
-    }, [interviewDuration]);
+    }, [interviewDuration, currentInterview?.status, interviewId, navigate]);
 
+    // Clear timer when interview ID changes 
     useEffect(() => {
         // Clean old timer when interview ID changes
         if (prevInterviewIdRef.current !== interviewId) {
@@ -389,7 +414,7 @@ const ActualInterviewScreen = ({ mediaStream }) => {
 
     // Ab handleEndInterview ke liye alag useEffect 
     useEffect(() => {
-        if (interviewDuration && timeLeft === 0) {
+        if (interviewDuration && timeLeft === 0 && !isEvaluatingRef.current) {
             console.log('Timer expired!');
 
             // timer khatam hone pr recording band kr do 
@@ -418,6 +443,7 @@ const ActualInterviewScreen = ({ mediaStream }) => {
     //     };
     // }, []);
 
+    // Browser unload warning
     useEffect(() => {
         // Force reload if user goes back
         window.onbeforeunload = () => {
@@ -429,14 +455,16 @@ const ActualInterviewScreen = ({ mediaStream }) => {
         };
     }, []);
 
+    // audio blob auto cleaner 
     useEffect(() => {
-        if (latestBlobRef.current && !isRecording) {
+        if (hasAudioBlob && !isRecording) {
             const timer = setTimeout(() => {
                 latestBlobRef.current = null;
+                setHasAudioBlob(false);
             }, 3000);
             return () => clearTimeout(timer);
         }
-    }, [latestBlobRef.current, isRecording]);
+    }, [hasAudioBlob, isRecording]);
 
 
     // Imp Metadata - SAFE ACCESS WITH DEFAULTS
@@ -449,6 +477,19 @@ const ActualInterviewScreen = ({ mediaStream }) => {
     const questionType = questionObj.qtyp || "conceptual";
     const estimatedTime = questionObj.et || 120;
     const expectedWordCount = questionObj.wc || 150;
+
+    const displayQuestionNumber = Math.min((currQueIndex || 0) + 1, questions.length);
+
+    if (isEnding) {
+        return (
+            <div className='h-screen w-full bg-slate-950 flex items-center justify-center'>
+                <div className='text-center'>
+                    <div className='text-xl text-slate-300 mb-2'>Submitting final answer...</div>
+                    <div className='text-md text-slate-500'>Preparing your feedback...</div>
+                </div>
+            </div>
+        );
+    }
 
 
     return (
@@ -463,7 +504,7 @@ const ActualInterviewScreen = ({ mediaStream }) => {
                 <div>
                     <h1 className='text-lg font-semibold'>{currentInterview?.title || 'Loading...'}</h1>
                     <div className='text-slate-500 mt-1 text-sm'>
-                        Question {(currQueIndex || 0) + 1} of {questions?.length || 0}
+                        Question {displayQuestionNumber} of {questions?.length || 0}
                     </div>
                 </div>
 
@@ -593,7 +634,7 @@ const ActualInterviewScreen = ({ mediaStream }) => {
                                 </Button>
 
                                 {/* Show Saved Status */}
-                                {latestBlobRef.current && !isRecording && (
+                                {hasAudioBlob && !isRecording && (
                                     <span className='text-green-400 text-sm'>✓ Audio saved</span>
                                 )}
 

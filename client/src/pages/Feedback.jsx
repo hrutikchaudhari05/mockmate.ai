@@ -319,7 +319,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import { fetchInterviewById, clearMediaStream } from '@/store/interviewSlice';
 import getRecommendationColor from '@/utils/getRecommendationColor';
 
-
 const Feedback = () => {
     const { interviewId } = useParams();
     const navigate = useNavigate();
@@ -383,6 +382,8 @@ const Feedback = () => {
     const improvementTips = Array.isArray(overallFeedback.improvementTips) ? overallFeedback.improvementTips : [];
     
     const questions = Array.isArray(currentInterview.questions) ? currentInterview.questions : [];
+
+    // const recommendation = getRecommendation(score);
 
     return (
         <motion.div
