@@ -66,13 +66,19 @@ export const registerUser = createAsyncThunk(
 export const autoLogin = createAsyncThunk(
     'auth/autoLogin',     // Action type for redux
     async (_, { rejectWithValue }) => { // means no parameters are needed
-        try {
-            // 1 - localStorage me to token persist karta hai to bring it here
-            const token = localStorage.getItem('token');
+        
+        // 1 - localStorage me to token persist karta hai to bring it here
+        const token = localStorage.getItem('token');
 
+        if (!token) {
+            return rejectWithValue("No token found!");
+        }
+        
+        try {
+            
             // 2 - make api call 
             const response = await axios.get(
-                'http://localhost:5000/api/users/verify', {
+                `${API}/api/users/verify`, {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
@@ -83,11 +89,18 @@ export const autoLogin = createAsyncThunk(
             return response.data;
 
         } catch (error) {
-            console.log("VerifyTokenTHUNK -> Error in verifying token: ", error.message);
-            // if token invalid, usko localStorage se remove karo 
-            localStorage.removeItem('token');
-            // Send error to redux
-            return rejectWithValue('Session expired!')
+            // 🔥 IMPORTANT DIFFERENTIATION
+            if (error.code === 'ERR_NETWORK') {
+                console.warn('Backend unreachable, keeping user logged in');
+                return rejectWithValue({ networkError: true });
+            }
+
+            if (error.response?.status === 401) {
+                localStorage.removeItem('token');
+                return rejectWithValue('Session expired');
+            }
+
+            return rejectWithValue('Verification failed');
         }
     }
 )

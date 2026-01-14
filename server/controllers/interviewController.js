@@ -860,18 +860,18 @@ const evaluateInterview = async (req, res) => {
         console.log(`Questions count: ${interview.questions?.length || 0}`);
 
         // 3. Check if all questions are answered
-        const unansweredQuestions = interview.questions?.filter(q => 
-            !q.answerText || q.answerText.trim() === ''
-        ) || [];
+        // const unansweredQuestions = interview.questions?.filter(q => 
+        //     !q.answerText || q.answerText.trim() === ''
+        // ) || [];
         
-        if (unansweredQuestions.length > 0) {
-            console.log(`${unansweredQuestions.length} unanswered questions`);
-            return res.status(400).json({ 
-                success: false,
-                error: `Interview has ${unansweredQuestions.length} unanswered questions. Please complete all questions first.`,
-                unansweredCount: unansweredQuestions.length
-            });
-        }
+        // if (unansweredQuestions.length > 0) {
+        //     console.log(`${unansweredQuestions.length} unanswered questions`);
+        //     return res.status(400).json({ 
+        //         success: false,
+        //         error: `Interview has ${unansweredQuestions.length} unanswered questions. Please complete all questions first.`,
+        //         unansweredCount: unansweredQuestions.length
+        //     });
+        // }
 
         // 4. Validate interview data
         if (!interview.questions || interview.questions.length === 0) {
@@ -898,6 +898,22 @@ const evaluateInterview = async (req, res) => {
 
         // 6. Update questions with feedback
         const updatedQuestions = interview.questions.map((q, i) => {
+
+            // SKIPPED QUESTION
+            if (!q.answerText || q.answerText.trim() === '') {
+                return {
+                    ...q._doc,
+                    feedbackObj: {
+                        score: 0,
+                        summary: 'No answer provided',
+                        strengths: [],
+                        improvementTips: ['Answer the question to receive feedback'],
+                        idealAnswer: ''
+                    },
+                    score: 0
+                };
+            }
+
             const feedbackData = generatedQuestionWiseFeedback?.questionWiseFeedback?.[i]?.feedbackObj || {};
             
             return {

@@ -7,8 +7,9 @@ import { Textarea } from './ui/textarea';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { fetchInterviewById, submitAnswer, getTranscriptT, evaluateInverview } from '@/store/interviewSlice';
-
 import { getDynamicNote } from '@/utils/getDynamicNote';
+import { autoSubmitRemainingQuestions } from './autoSubmitRemainingQuestions';
+
 
 const ActualInterviewScreen = ({ mediaStream }) => {
 
@@ -50,6 +51,8 @@ const ActualInterviewScreen = ({ mediaStream }) => {
     const [hasAudioBlob, setHasAudioBlob] = useState(false);  // track if audio blob exists
     // const [audioBlob, setAudioBlob] = useState(null);   // audio file save karne ke liye
     const [isEnding, setIsEnding] = useState(false);    // Prevent UI glitch
+    const [showEndInterviewPopup, setShowEndInterviewPopup] = useState(false);
+
 
     // time conversion handler 
     const formatTime = (t) => {
@@ -171,78 +174,6 @@ const ActualInterviewScreen = ({ mediaStream }) => {
         setAnswer(e.target.value);
     };
 
-    // 4 - submit and next
-    const handleSubmit = async () => {
-
-        if (!answer.trim()) {
-            alert("Please provide an answer before submitting!");
-            return;
-        }
-
-        setIsConverting(false);
-        setAttempts(0);
-        // pehle loading on
-        setIsLoading(true);
-
-        try {
-            // 1. submit answer api call - ALWAYS submit the answer first
-            const submitResult = await dispatch(submitAnswer({
-                interviewId: interviewId,
-                answerText: answer,
-                audioUrl: latestBlobRef.current ? 'temp_url' : ''
-            }))
-
-            // 2. checking success
-            if (!submitAnswer.fulfilled.match(submitResult)) {
-
-                console.error("Submit failed: ", submitResult.error);
-                alert("Failed to submit answer. Please try again.");
-                setIsLoading(false);
-                return;
-            }
-
-            // 3. local states ko reset karo - upar waale operations hone ke baad firse local states ko reset karna padega
-            setAnswer('');
-            setRecordSeconds(0);
-            chunksRef.current = [];
-            latestBlobRef.current = null;
-            setHasAudioBlob(false);
-
-            // 4. interviewData ko refresh karo
-            const fetchResult = await dispatch(fetchInterviewById(interviewId));
-            if (!fetchInterviewById.fulfilled.match(fetchResult)) {
-                console.error("Failed to fetch updated interview!");
-                setIsLoading(false);
-                return;
-            }
-
-            // 5. getting fresh data from redux 
-            const updatedInterview = fetchResult.payload;
-            console.log("Updated Interview: ", updatedInterview);
-
-            // 6. check if this was the last question 
-            const isLastQuestion = updatedInterview.currentQuestionIndex >= updatedInterview.questions.length;
-
-            if (isLastQuestion) {
-                console.log("Last question submitted, ending interview...");
-                setIsEnding(true);
-
-                setTimeout(() => {
-                    handleEndInterview();
-                }, 300);
-                return;
-            }
-
-            // 7. for non-last questions, just remove loading
-            setIsLoading(false);
-        } catch (error) {
-            console.error("Submit error: ", error);
-            alert("An error occurred. Please try again.");
-            setIsLoading(false);
-        }
-
-    }
-
     // 5 - End Interview 
     const handleEndInterview = useCallback(async () => {
 
@@ -283,6 +214,13 @@ const ActualInterviewScreen = ({ mediaStream }) => {
         try {
             console.log("Starting evaluation for interview: ", interviewId);
 
+            await autoSubmitRemainingQuestions({
+                interviewId, 
+                currentQuestionIndex: currQueIndex,
+                totalQuestions: currentInterview.questions.length,
+                dispatch
+            });
+
             const result = await dispatch(evaluateInverview(interviewId));
 
             if (evaluateInverview.rejected.match(result)) {
@@ -312,6 +250,86 @@ const ActualInterviewScreen = ({ mediaStream }) => {
         
     }, [currentInterview?.status, interviewId, isRecording, navigate, dispatch, handleStopRecording]);
 
+
+    // 4 - submit and next
+    const handleSubmit = useCallback(async (forceSubmit = false) => {
+
+        // if (!answer.trim()) {
+        //     alert("Please provide an answer before submitting!");
+        //     return;
+        // }
+
+        setIsConverting(false);
+        setAttempts(0);
+        // pehle loading on
+        setIsLoading(true);
+
+        try {
+            // 1. submit answer api call - ALWAYS submit the answer first
+            const submitResult = await dispatch(submitAnswer({
+                interviewId: interviewId,
+                answerText: answer.trim() || "",
+                audioUrl: latestBlobRef.current ? 'temp_url' : ''
+            }))
+
+            // 2. checking success
+            if (!submitAnswer.fulfilled.match(submitResult)) {
+
+                console.error("Submit failed: ", submitResult.error);
+                if (!forceSubmit) {
+                    alert("Failed to submit answer. Please try again.");
+                    setIsLoading(false);
+                    return;
+                }
+                console.log("Auto-submit failed, continuing...");
+            }
+
+            // 3. interviewData ko refresh karo
+            const fetchResult = await dispatch(fetchInterviewById(interviewId));
+            if (!fetchInterviewById.fulfilled.match(fetchResult)) {
+                console.error("Failed to fetch updated interview!");
+                setIsLoading(false);
+                return;
+            }
+
+            // 4. getting fresh data from redux 
+            const updatedInterview = fetchResult.payload;
+            console.log("Updated Interview: ", updatedInterview);
+            // 5. check if this was the last question 
+            const isLastQuestion = updatedInterview.currentQuestionIndex >= updatedInterview.questions.length;
+
+            // If last question, show confirmation
+            if (currQueIndex >= updatedInterview.questions.length - 1) {
+                setShowEndInterviewPopup(true);
+                return;
+            }
+
+            if (isLastQuestion || forceSubmit) {
+                console.log(forceSubmit ? "Auto-ending interview..." : "Last answer saved - ending interview...");
+                setIsEnding(true);
+                await handleEndInterview();
+                return;
+            }
+
+            // 6. local states ko reset karo - upar waale operations hone ke baad firse local states ko reset karna padega
+            setAnswer('');
+            setRecordSeconds(0);
+            chunksRef.current = [];
+            latestBlobRef.current = null;
+            setHasAudioBlob(false);
+
+            // 7. for non-last questions, just remove loading
+            setIsLoading(false);
+        } catch (error) {
+            console.error("Submit error: ", error);
+            alert("An error occurred. Please try again.");
+            setIsLoading(false);
+            setIsEnding(false);
+        }
+
+    }, [answer, currQueIndex, interviewId, dispatch, handleEndInterview]);
+
+    
     
     // ActualInterviewScreen.jsx me add:
     useEffect(() => {
@@ -415,16 +433,28 @@ const ActualInterviewScreen = ({ mediaStream }) => {
     // Ab handleEndInterview ke liye alag useEffect 
     useEffect(() => {
         if (interviewDuration && timeLeft === 0 && !isEvaluatingRef.current) {
-            console.log('Timer expired!');
+            const handleTimeUp = async () => {
+                console.log('Timer expired!');
 
-            // timer khatam hone pr recording band kr do 
-            if (isRecording) {
-                handleStopRecording();
+                // timer khatam hone pr recording band kr do 
+                if (isRecording) {
+                    handleStopRecording();
+                }
+
+                await autoSubmitRemainingQuestions({
+                    interviewId,
+                    currentQuestionIndex: currQueIndex,
+                    totalQuestions: currentInterview.questions.length,
+                    dispatch,
+                });
+
+                await handleEndInterview();
             }
 
-            handleEndInterview();
+            handleTimeUp();
+
         }
-    }, [timeLeft, interviewDuration, isRecording, handleStopRecording, handleEndInterview]) 
+    }, [timeLeft, interviewDuration, isRecording, handleStopRecording, handleEndInterview, currQueIndex, currentInterview?.questions?.length, interviewId, dispatch]); 
 
 
 
@@ -497,6 +527,48 @@ const ActualInterviewScreen = ({ mediaStream }) => {
         // ye main div hai full screen mode waala
         <div className='h-screen w-full bg-slate-950 flex flex-col font-sans text-slate-100' >
             
+
+            {/* // Popup component: */}
+            {showEndInterviewPopup && (
+                <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center">
+                    <div className="bg-slate-800 p-6 rounded-lg max-w-md">
+                        <h3 className='text-xl font-bold mb-4'>End Interview?</h3>
+                        
+                        <p className='mb-4 text-slate-300'>
+                            {questions.some(q => !q.answerText) 
+                                ? "You haven't answered all questions. Are you sure you want to end?" 
+                                : "Are you sure you want to end the interview?"}
+                        </p>
+                        
+                        <div className='flex gap-4 justify-end'>
+                            <Button 
+                                onClick={() => setShowEndInterviewPopup(false)}
+                                className="bg-slate-700"
+                            >
+                                Cancel
+                            </Button>
+                            <Button 
+                                onClick={async () => {
+                                    setShowEndInterviewPopup(false);
+
+                                    await autoSubmitRemainingQuestions({
+                                        interviewId,
+                                        currentQuestionIndex: currQueIndex,
+                                        totalQuestions: currentInterview.questions.length,
+                                        dispatch
+                                    });
+
+                                    handleEndInterview();
+                                }}
+                                variant="destructive"
+                            >
+                                End Interview
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Top Bar */}
             <header className='bg-slate-950 border-b border-slate-800 flex flex-row justify-between items-center px-8 py-4'>
 
@@ -522,8 +594,8 @@ const ActualInterviewScreen = ({ mediaStream }) => {
                     {/* END INTERVIEW */}
                     <Button 
                         variant="destructive"
-                        onClick={handleEndInterview}
-                        disabled={isLoading || isConverting || currQueIndex < currentInterview.questions.length - 1}
+                        onClick={() => setShowEndInterviewPopup(true)}
+                        // disabled={isLoading || isConverting || currQueIndex < currentInterview.questions.length - 1}
                         className="bg-red-500/80"
                     >
                         End Interview
@@ -652,12 +724,12 @@ const ActualInterviewScreen = ({ mediaStream }) => {
                             {/* NEXT BUTTON */}
                             <Button
                                 disabled={isLoading || isConverting}
-                                onClick={handleSubmit}
+                                onClick={() => handleSubmit(false)}
                                 className="border-slate-700 border text-slate-400 bg-slate-950/80 font-bold hover:bg-slate-950 hover:border hover:border-indigo-500/80 hover:text-indigo-400"
                                 
                             >
                                 {currQueIndex >= questions.length - 1 
-                                    ? (isLoading ? 'Saving...' : "End Interview") 
+                                    ? (isLoading ? 'Saving...' : "Submit & End") 
                                     : (isLoading ? 'Submitting...' : "Submit & Next")}
                                 
                             </Button>
