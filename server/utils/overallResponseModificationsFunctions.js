@@ -14,4 +14,13 @@ const finalOverallScore = (avgScore, aiScore) => {
     return Math.round(score * 10) / 10;
 }
 
-module.exports = { calculateOverallScore, finalOverallScore };
+const modifyRecommendation = (overallFeedbackObj) => {
+    const score = overallFeedbackObj?.score || 0;
+    
+    if (score <= 40) return "not recommended";
+    if (score <= 60) return "needs improvement";
+    if (score <= 80) return "considerable fit";
+    return "strong fit";
+};
+
+module.exports = { calculateOverallScore, finalOverallScore, modifyRecommendation };

@@ -1,17 +1,26 @@
-const getRecommendation = (score) => {
-    let recommendation = 'not recommended';
+// const getRecommendation = (score) => {
+//     let recommendation = 'not recommended';
 
-    if (score >= 41 && score <= 60) {
-        recommendation = 'needs improvement';
-    } else if (score >= 61 && score <= 80) {
-        recommendation = 'considerable fit';
-    } else {
-        recommendation = 'strong fit';
-    }
+//     if (score >= 41 && score <= 60) {
+//         recommendation = 'needs improvement';
+//     } else if (score >= 61 && score <= 80) {
+//         recommendation = 'considerable fit';
+//     } else {
+//         recommendation = 'strong fit';
+//     }
 
-    return recommendation;
+//     return recommendation;
 
-}
+// }
+
+const getRecommendation = (overallFeedbackObj) => {
+    const score = overallFeedbackObj?.score;
+    
+    if (score <= 40) return "not recommended";
+    if (score <= 60) return "needs improvement";
+    if (score <= 80) return "considerable fit";
+    return "strong fit";
+};
 
 module.exports = getRecommendation;
 

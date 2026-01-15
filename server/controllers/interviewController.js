@@ -2,7 +2,7 @@ const InterviewSession = require('../models/InterviewSession');
 const { generateAIQuestions } = require('../utils/generateQuestions');
 const { AssemblyAI } = require('assemblyai');
 const { getOverallFeedback, getQuestionWiseFeedback, evaluateQuestions } = require('../utils/getFeedback');
-const { calculateOverallScore, finalOverallScore } = require('../utils/calculateOverallScore');
+const { calculateOverallScore, finalOverallScore } = require('../utils/overallResponseModificationsFunctions');
 const calculateAvgScore = require('../utils/calculateAvgScore');
 const calculateAvgInterviewDuration = require('../utils/calculateAvgInterviewDuration');
 const { getInterviewDates, getUniqueSortedDates } = require('../utils/getInterviewDates');
@@ -951,6 +951,9 @@ const evaluateInterview = async (req, res) => {
 
         const overallScore = finalOverallScore(avgScore, overallFeedback.score || 0);
         console.log(`Final Overall Score: ${overallScore}`);
+
+        const recommendation = getRecommendation({ score: overallScore });
+        console.log("Recommendation: ", recommendation);
 
         // 9. Atomic update - All changes in one operation
         const updatedInterview = await InterviewSession.findOneAndUpdate(

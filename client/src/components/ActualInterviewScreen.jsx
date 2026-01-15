@@ -259,6 +259,14 @@ const ActualInterviewScreen = ({ mediaStream }) => {
         //     return;
         // }
 
+        // STOP RECORDING IF IT'S RUNNING 
+        if (isRecording) {
+            console.log("Stopping recording before submit...");
+            handleStopRecording();
+            // Wait for recording to stop and conversion to start
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
         setIsConverting(false);
         setAttempts(0);
         // pehle loading on
@@ -296,30 +304,38 @@ const ActualInterviewScreen = ({ mediaStream }) => {
             const updatedInterview = fetchResult.payload;
             console.log("Updated Interview: ", updatedInterview);
             // 5. check if this was the last question 
-            const isLastQuestion = updatedInterview.currentQuestionIndex >= updatedInterview.questions.length;
+            const isLastQuestion = (currQueIndex + 1) >= updatedInterview.questions.length;
 
             // If last question, show confirmation
-            if (currQueIndex >= updatedInterview.questions.length - 1) {
+            // if (currQueIndex >= updatedInterview.questions.length - 1) {
+            //     setShowEndInterviewPopup(true);
+            //     return;
+            // }
+
+            if (isLastQuestion && !forceSubmit) {
+                console.log(forceSubmit ? "Auto-ending interview..." : "Last answer saved - ending interview...");
+                setIsEnding(true);
+                setIsLoading(false);
                 setShowEndInterviewPopup(true);
                 return;
             }
 
-            if (isLastQuestion || forceSubmit) {
-                console.log(forceSubmit ? "Auto-ending interview..." : "Last answer saved - ending interview...");
+            // If forceSubmit (auto-submit) or timer ended, end interview
+            if (forceSubmit || isLastQuestion) {
+                console.log("Auto-ending interview...");
                 setIsEnding(true);
                 await handleEndInterview();
                 return;
             }
 
-            // 6. local states ko reset karo - upar waale operations hone ke baad firse local states ko reset karna padega
+            // For non-last questions, just reset states and continue
             setAnswer('');
             setRecordSeconds(0);
             chunksRef.current = [];
             latestBlobRef.current = null;
             setHasAudioBlob(false);
-
-            // 7. for non-last questions, just remove loading
             setIsLoading(false);
+
         } catch (error) {
             console.error("Submit error: ", error);
             alert("An error occurred. Please try again.");
@@ -496,6 +512,16 @@ const ActualInterviewScreen = ({ mediaStream }) => {
         }
     }, [hasAudioBlob, isRecording]);
 
+    // loading state for undefined interview
+    if (!currentInterview) {
+        return (
+            <div className='h-screen w-full bg-slate-950 flex items-center justify-center'>
+                <div className='text-center'>
+                    <div className='text-xl text-slate-300 mb-2'>Loading interview...</div>
+                </div>
+            </div>
+        );
+    }
 
     // Imp Metadata - SAFE ACCESS WITH DEFAULTS
     const questions = currentInterview?.questions || [];
@@ -508,7 +534,9 @@ const ActualInterviewScreen = ({ mediaStream }) => {
     const estimatedTime = questionObj.et || 120;
     const expectedWordCount = questionObj.wc || 150;
 
-    const displayQuestionNumber = Math.min((currQueIndex || 0) + 1, questions.length);
+    const displayQuestionNumber = currQueIndex !== undefined 
+        ? Math.min(currQueIndex + 1, questions.length)
+        : 1;
 
     if (isEnding) {
         return (
@@ -597,6 +625,7 @@ const ActualInterviewScreen = ({ mediaStream }) => {
                         onClick={() => setShowEndInterviewPopup(true)}
                         // disabled={isLoading || isConverting || currQueIndex < currentInterview.questions.length - 1}
                         className="bg-red-500/80"
+                        disabled={isLoading || isConverting}
                     >
                         End Interview
                     </Button>
@@ -723,14 +752,15 @@ const ActualInterviewScreen = ({ mediaStream }) => {
 
                             {/* NEXT BUTTON */}
                             <Button
-                                disabled={isLoading || isConverting}
+                                disabled={isLoading || isConverting || isRecording}
                                 onClick={() => handleSubmit(false)}
                                 className="border-slate-700 border text-slate-400 bg-slate-950/80 font-bold hover:bg-slate-950 hover:border hover:border-indigo-500/80 hover:text-indigo-400"
                                 
                             >
-                                {currQueIndex >= questions.length - 1 
-                                    ? (isLoading ? 'Saving...' : "Submit & End") 
-                                    : (isLoading ? 'Submitting...' : "Submit & Next")}
+                                {isRecording ? "Please stop recording first" : 
+                                    isConverting ? "Transcribing audio..." : 
+                                    isLoading ? 'Submitting...' : 
+                                    (currQueIndex >= questions.length - 1 ? "Submit & End Interview" : "Submit & Next Question")}
                                 
                             </Button>
                         </div>

@@ -175,9 +175,9 @@ const PreInterviewScreen = ({onStart}) => {
             await dispatch(fetchInterviewById(interviewId));
             
             // ab parent ko stream bhejo
-            console.log("Calling onStart with stream: ", stream);
-            onStart(stream);
-            console.log("onStart called successfully!");
+            // console.log("Calling onStart with stream: ", stream);
+            // onStart(stream);
+            // console.log("onStart called successfully!");
 
             // Show fullscreen button
             setShowFullscreenBtn(true);
