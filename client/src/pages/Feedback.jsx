@@ -52,8 +52,10 @@ const Feedback = () => {
 
     if (interviewLoading) {
         return (
-            <div className='min-h-screen bg-slate-950 text-white'>
-                Generating Feedback of your interview...!
+            <div className='min-h-screen bg-slate-950 text-white flex items-center justify-center'>
+                <div className='text-center'>
+                    <div className='text-xl text-slate-300 mb-2'>Generating feedback for your interview...</div>
+                </div>
             </div>
         );
     }
@@ -76,6 +78,9 @@ const Feedback = () => {
     
     const questions = Array.isArray(currentInterview.questions) ? currentInterview.questions : [];
 
+    console.log("Backend Data: ", {
+        score, recommendation, overallFeedback
+    });
     // const recommendation = getRecommendation(score);
 
     return (

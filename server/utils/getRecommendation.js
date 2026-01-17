@@ -13,8 +13,7 @@
 
 // }
 
-const getRecommendation = (overallFeedbackObj) => {
-    const score = overallFeedbackObj?.score;
+const getRecommendation = (score) => {
     
     if (score <= 40) return "not recommended";
     if (score <= 60) return "needs improvement";

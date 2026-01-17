@@ -952,7 +952,7 @@ const evaluateInterview = async (req, res) => {
         const overallScore = finalOverallScore(avgScore, overallFeedback.score || 0);
         console.log(`Final Overall Score: ${overallScore}`);
 
-        const recommendation = getRecommendation({ score: overallScore });
+        const recommendation = getRecommendation(overallScore);
         console.log("Recommendation: ", recommendation);
 
         // 9. Atomic update - All changes in one operation
@@ -970,7 +970,7 @@ const evaluateInterview = async (req, res) => {
                         summary: overallFeedback.summary || 'Overall performance feedback',
                         strengths: overallFeedback.strengths || [],
                         improvementTips: overallFeedback.improvementTips || [],
-                        recommendation: getRecommendation(overallScore)
+                        recommendation: recommendation
                     },
                     feedbackGeneratedAt: new Date(),
                     status: 'evaluated'
@@ -1045,54 +1045,6 @@ const evaluateInterview = async (req, res) => {
 //     }
 // }
 
-// Add this to your interviewController.js
-// const fixInterviewStatus = async (req, res) => {
-//     try {
-//         const interview = await InterviewSession.findById(req.params.interviewId);
-        
-//         if (!interview) {
-//             return res.status(404).json({ error: 'Interview not found' });
-//         }
-        
-//         if (interview.user.toString() !== req.user.id) {
-//             return res.status(403).json({ error: 'Unauthorized' });
-//         }
-        
-//         const originalStatus = interview.status;
-//         let newStatus = originalStatus;
-        
-//         // Fix wrong status logic
-//         if (interview.status === 'evaluated' && !interview.feedbackGeneratedAt) {
-//             // Status is 'evaluated' but no feedback exists - fix it
-//             if (interview.questions && interview.questions.length > 0) {
-//                 // Check if all questions answered
-//                 const unanswered = interview.questions.filter(q => !q.answerText || q.answerText.trim() === '');
-//                 if (unanswered.length === 0) {
-//                     newStatus = 'completed'; // All answered but no feedback
-//                 } else {
-//                     newStatus = 'ongoing'; // Some questions unanswered
-//                 }
-//             } else {
-//                 newStatus = 'setup'; // No questions generated
-//             }
-            
-//             interview.status = newStatus;
-//             await interview.save();
-//         }
-        
-//         res.json({
-//             success: true,
-//             message: 'Status fixed if needed',
-//             originalStatus,
-//             newStatus,
-//             feedbackExists: !!interview.feedbackGeneratedAt,
-//             questionsCount: interview.questions?.length || 0,
-//             needsEvaluation: newStatus === 'completed' && !interview.feedbackGeneratedAt
-//         });
-        
-//     } catch (error) {
-//         res.status(500).json({ error: error.message });
-//     }
-// };
+
 
 module.exports = { createInterview, getUserInterviews, getInterviewById, generateQuestionsH, beginInterview, getTranscript, submitAnswer, evaluateInterview};

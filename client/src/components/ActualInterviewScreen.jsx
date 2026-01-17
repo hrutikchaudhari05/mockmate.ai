@@ -186,6 +186,7 @@ const ActualInterviewScreen = ({ mediaStream }) => {
         }
 
         isEvaluatingRef.current = true;
+        setIsLoading(true);
 
         // pehle recording band karo 
         if (isRecording) {
@@ -208,9 +209,6 @@ const ActualInterviewScreen = ({ mediaStream }) => {
             return;
         }
 
-        // showing loading state 
-        setIsLoading(true);
-
         try {
             console.log("Starting evaluation for interview: ", interviewId);
 
@@ -230,6 +228,8 @@ const ActualInterviewScreen = ({ mediaStream }) => {
             if (document.fullscreenElement && document.exitFullscreen) {
                 await document.exitFullscreen();
             }
+
+            isEvaluatingRef.current = false;
 
             // aur dusre page pr navigate kr do (feedback page)
             // but abhi ke liye, setupInterview page pr navigate karta hoo for rechecking everything 
@@ -316,7 +316,8 @@ const ActualInterviewScreen = ({ mediaStream }) => {
                 console.log(forceSubmit ? "Auto-ending interview..." : "Last answer saved - ending interview...");
                 setIsEnding(true);
                 setIsLoading(false);
-                setShowEndInterviewPopup(true);
+                await handleEndInterview();
+                // setShowEndInterviewPopup(true);
                 return;
             }
 
@@ -512,6 +513,22 @@ const ActualInterviewScreen = ({ mediaStream }) => {
         }
     }, [hasAudioBlob, isRecording]);
 
+    // useEffect to handle timeout if evaluation gets stuck
+    useEffect(() => {
+        if (isEnding) {
+            const timeoutId = setTimeout(() => {
+                console.log("Evaluation taking too long, forcing navigation...");
+                setIsEnding(false);
+                navigate(`/feedback/${interviewId}`);
+            }, 30000); // 30 seconds timeout
+
+            return () => clearTimeout(timeoutId);
+        }
+    }, [isEnding, interviewId, navigate]);
+
+
+
+
     // loading state for undefined interview
     if (!currentInterview) {
         return (
@@ -522,6 +539,8 @@ const ActualInterviewScreen = ({ mediaStream }) => {
             </div>
         );
     }
+
+    
 
     // Imp Metadata - SAFE ACCESS WITH DEFAULTS
     const questions = currentInterview?.questions || [];
@@ -563,8 +582,8 @@ const ActualInterviewScreen = ({ mediaStream }) => {
                         <h3 className='text-xl font-bold mb-4'>End Interview?</h3>
                         
                         <p className='mb-4 text-slate-300'>
-                            {questions.some(q => !q.answerText) 
-                                ? "You haven't answered all questions. Are you sure you want to end?" 
+                            {currQueIndex < questions.length - 1 
+                                ? `You have ${questions.length - (currQueIndex + 1)} unanswered questions. Are you sure you want to end?`
                                 : "Are you sure you want to end the interview?"}
                         </p>
                         
